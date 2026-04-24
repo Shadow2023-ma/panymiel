@@ -1,0 +1,2983 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>MONOPOLIO</title>
+<script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Lato:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#1a1209;--panel:#231a0e;--gold:#d4a017;--gold2:#f0c040;
+  --white:#f5f0e8;--dim:#3d2f1a;--text:#e8dcc8;
+  --p1color:#e63946;--p2color:#457b9d;--p3color:#2ecc71;--p4color:#9b59b6;
+}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;}
+.screen{display:none;height:100dvh;flex-direction:column;align-items:center;justify-content:center;padding:20px;overflow-y:auto;}
+.screen.active{display:flex;}
+
+/* ── LOGO ── */
+.logo{font-family:'Oswald',sans-serif;font-size:64px;font-weight:700;letter-spacing:6px;
+  background:linear-gradient(135deg,#d4a017,#f0c040,#a07010);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 2px 12px #d4a01760);text-align:center;}
+.logo-sub{font-size:11px;letter-spacing:5px;color:#7a6040;text-transform:uppercase;margin-top:-4px;text-align:center;margin-bottom:28px;}
+
+/* ── MAIN MENU ── */
+#main-menu{background:radial-gradient(ellipse at top,#2d1f0a,#1a1209);}
+.menu-btns{width:100%;max-width:340px;display:flex;flex-direction:column;gap:14px;}
+.menu-btn{border:none;border-radius:16px;padding:20px;font-family:'Oswald',sans-serif;
+  font-size:20px;letter-spacing:2px;cursor:pointer;transition:all 0.18s;text-align:left;
+  display:flex;align-items:center;gap:14px;}
+.menu-btn:active{transform:scale(0.97);}
+.menu-btn-offline{background:linear-gradient(135deg,#d4a017,#f0c040);color:#1a1209;}
+.menu-btn-online{background:var(--panel);color:var(--text);border:1.5px solid var(--dim);}
+.menu-btn-online:hover{border-color:var(--gold);}
+.menu-icon{font-size:28px;}
+.menu-btn-desc{font-size:11px;letter-spacing:1px;opacity:0.7;font-family:'Lato',sans-serif;font-weight:400;margin-top:2px;}
+
+/* ── ONLINE LOBBY ── */
+#online-lobby{background:radial-gradient(ellipse at top,#0a1a2d,#1a1209);}
+.online-options{width:100%;max-width:340px;display:flex;flex-direction:column;gap:14px;}
+.online-card{background:var(--panel);border:1.5px solid var(--dim);border-radius:16px;padding:22px;}
+.online-card-title{font-family:'Oswald',sans-serif;font-size:16px;letter-spacing:2px;color:var(--gold);margin-bottom:14px;}
+.input-field{width:100%;background:#12100a;border:1.5px solid var(--dim);border-radius:10px;
+  padding:12px 14px;color:var(--white);font-size:16px;font-family:'Lato',sans-serif;outline:none;margin-bottom:10px;}
+.input-field:focus{border-color:var(--gold);}
+.code-input{font-family:'Oswald',sans-serif;font-size:28px;letter-spacing:8px;text-align:center;text-transform:uppercase;}
+.action-btn{width:100%;border:none;border-radius:12px;padding:14px;font-family:'Oswald',sans-serif;
+  font-size:17px;letter-spacing:2px;cursor:pointer;transition:all 0.15s;}
+.action-btn:active{transform:scale(0.97);}
+.btn-gold{background:linear-gradient(135deg,#d4a017,#f0c040);color:#1a1209;}
+.btn-blue{background:#2471a3;color:white;}
+.back-btn{background:none;border:none;color:#8a7a5a;font-family:'Oswald',sans-serif;
+  font-size:13px;letter-spacing:2px;cursor:pointer;padding:10px;margin-top:8px;}
+
+/* ── WAITING ROOM ── */
+#waiting-room{background:radial-gradient(ellipse at top,#0a1a2d,#1a1209);}
+.room-code-display{background:var(--panel);border:2px solid var(--gold);border-radius:16px;
+  padding:20px 30px;text-align:center;margin-bottom:20px;width:100%;max-width:340px;}
+.room-code-label{font-size:11px;letter-spacing:4px;color:#7a6040;text-transform:uppercase;margin-bottom:6px;}
+.room-code-number{font-family:'Oswald',sans-serif;font-size:36px;font-weight:700;letter-spacing:6px;
+  background:linear-gradient(135deg,#d4a017,#f0c040);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;word-break:break-all;}
+.room-code-hint{font-size:11px;color:#7a6040;margin-top:4px;}
+.players-list{width:100%;max-width:340px;display:flex;flex-direction:column;gap:8px;margin-bottom:20px;}
+.player-slot{background:var(--panel);border:1.5px solid var(--dim);border-radius:12px;
+  padding:14px 16px;display:flex;align-items:center;gap:12px;transition:all 0.3s;}
+.player-slot.filled{border-color:var(--dim);}
+.player-slot.empty{opacity:0.4;border-style:dashed;}
+.slot-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:'Oswald',sans-serif;font-size:14px;font-weight:700;color:white;flex-shrink:0;}
+.slot-name{font-family:'Oswald',sans-serif;font-size:15px;}
+.slot-tag{font-size:10px;color:#8a7a5a;margin-top:2px;}
+.slot-token{font-size:20px;margin-left:auto;}
+.waiting-status{font-size:12px;color:#8a7a5a;text-align:center;margin-bottom:16px;letter-spacing:1px;}
+.waiting-dots::after{content:'';animation:dots 1.5s infinite;}
+@keyframes dots{0%{content:''}33%{content:'.'}66%{content:'..'}100%{content:'...'}}
+
+/* ── TOKEN SELECTOR ── */
+.token-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+.token-btn{background:#12100a;border:1.5px solid var(--dim);border-radius:10px;padding:8px 12px;font-size:20px;cursor:pointer;transition:all 0.15s;}
+.token-btn.selected{border-color:var(--gold);background:#2d2010;box-shadow:0 0 10px #d4a01740;}
+.token-btn.taken{opacity:0.25;pointer-events:none;}
+
+/* ── SETUP OFFLINE ── */
+#setup{background:radial-gradient(ellipse at top,#2d1f0a,#1a1209);}
+.player-setup{width:100%;max-width:360px;display:flex;flex-direction:column;gap:16px;}
+.player-card{background:var(--panel);border:1.5px solid var(--dim);border-radius:16px;padding:18px 20px;}
+.player-card-title{font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:3px;margin-bottom:10px;}
+.name-input{width:100%;background:#12100a;border:1.5px solid var(--dim);border-radius:10px;
+  padding:12px 14px;color:var(--white);font-size:16px;font-family:'Lato',sans-serif;outline:none;}
+.name-input:focus{border-color:var(--gold);}
+.start-btn{background:linear-gradient(135deg,#d4a017,#f0c040);color:#1a1209;border:none;
+  border-radius:50px;padding:16px;font-family:'Oswald',sans-serif;font-size:24px;
+  letter-spacing:3px;cursor:pointer;width:100%;max-width:360px;margin-top:8px;
+  box-shadow:0 4px 20px #d4a01750;transition:all 0.15s;}
+
+/* ── GAME ── */
+#game-screen{
+  background:var(--bg);
+  padding:0;
+  justify-content:flex-start;
+  height:100dvh;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+
+/* Barra horizontal de jugadores (arriba) */
+#player-bar-strip{
+  width:100%;
+  height:var(--topbar-h);
+  background:var(--panel);
+  border-bottom:1px solid var(--dim);
+  display:flex;
+  flex-direction:row;
+  flex-shrink:0;
+  padding:4px 8px;
+  gap:8px;
+  align-items:center;
+  box-sizing:border-box;
+}
+.player-chip{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  flex:1;
+  background:#12100a;
+  border-radius:10px;
+  padding:6px 8px;
+  border:1.5px solid transparent;
+  transition:all 0.2s;
+  min-width:0;
+}
+.player-chip.active-turn{
+  border-color:var(--gold2);
+  box-shadow:0 0 8px #f0c04040;
+}
+.p-avatar-sm{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:white;font-family:'Oswald',sans-serif;flex-shrink:0;}
+.chip-name{font-family:'Oswald',sans-serif;font-size:11px;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.chip-money{font-family:'Oswald',sans-serif;font-size:12px;color:#4caf50;white-space:nowrap;}
+.chip-token{font-size:14px;flex-shrink:0;}
+.turn-dot{width:6px;height:6px;border-radius:50%;background:var(--dim);flex-shrink:0;}
+.turn-dot.active{background:var(--gold2);box-shadow:0 0 5px var(--gold2);animation:blink 1s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+
+/* ── CHAT BUTTON ── */
+#chat-btn-wrap{position:relative;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+#chat-toggle-btn{
+  width:36px;height:36px;border-radius:10px;border:1.5px solid var(--dim);
+  background:#12100a;cursor:pointer;font-size:18px;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.15s;flex-shrink:0;
+}
+#chat-toggle-btn:active{transform:scale(0.93);}
+#chat-toggle-btn:hover{border-color:var(--gold);}
+#chat-notif{
+  position:absolute;top:-5px;right:-5px;
+  width:16px;height:16px;border-radius:50%;
+  background:#e63946;color:white;
+  font-size:9px;font-weight:700;font-family:'Oswald',sans-serif;
+  display:none;align-items:center;justify-content:center;
+  border:1.5px solid var(--bg);
+}
+#chat-notif.show{display:flex;}
+
+/* ── CHAT PANEL ── */
+#chat-panel{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:min(100vw,400px);
+  background:var(--panel);
+  border:1.5px solid var(--dim);
+  border-bottom:none;
+  border-radius:16px 16px 0 0;
+  z-index:200;
+  display:none;
+  flex-direction:column;
+  max-height:60dvh;
+  box-shadow:0 -4px 24px #00000080;
+}
+#chat-panel.open{display:flex;}
+#chat-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 16px 8px;
+  border-bottom:1px solid var(--dim);
+  flex-shrink:0;
+}
+#chat-header-title{font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:2px;color:var(--gold);}
+#chat-close-btn{background:none;border:none;color:#8a7a5a;font-size:20px;cursor:pointer;line-height:1;}
+#chat-messages{
+  flex:1;overflow-y:auto;padding:10px 12px;
+  display:flex;flex-direction:column;gap:6px;
+  min-height:80px;
+}
+.chat-msg{max-width:85%;padding:7px 10px;border-radius:10px;font-size:13px;line-height:1.4;}
+.chat-msg.mine{background:#1e3a1e;color:#90ee90;align-self:flex-end;border-bottom-right-radius:3px;}
+.chat-msg.theirs{background:#1a1a2e;color:#a0c4ff;align-self:flex-start;border-bottom-left-radius:3px;}
+.chat-msg-name{font-size:9px;color:#8a7a5a;margin-bottom:2px;font-family:'Oswald',sans-serif;letter-spacing:1px;}
+.chat-msg-text{word-break:break-word;}
+.chat-empty{font-size:12px;color:#555;text-align:center;padding:16px;}
+#chat-input-row{
+  display:flex;gap:8px;padding:8px 12px 12px;
+  border-top:1px solid var(--dim);flex-shrink:0;
+}
+#chat-input{
+  flex:1;background:#12100a;border:1.5px solid var(--dim);
+  border-radius:10px;padding:10px 12px;
+  color:var(--white);font-size:14px;font-family:'Lato',sans-serif;outline:none;
+}
+#chat-input:focus{border-color:var(--gold);}
+#chat-send-btn{
+  background:linear-gradient(135deg,#d4a017,#f0c040);color:#1a1209;
+  border:none;border-radius:10px;padding:10px 14px;
+  font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:1px;
+  cursor:pointer;flex-shrink:0;
+}
+#chat-send-btn:active{transform:scale(0.96);}
+
+/* ─── LAYOUT GAME MAIN ROW ─── */
+:root{
+  --panel-w: 300px;
+  --topbar-h: 52px;
+  --board-offset: 56px; /* topbar only - no bottom panel in desktop */
+}
+
+/* game-main-row = tablero + panel derecho */
+#game-main-row{
+  display:flex;
+  flex-direction:row;
+  flex:1;
+  min-height:0;
+  overflow:hidden;
+  width:100%;
+}
+
+/* Columna del tablero */
+#board-col{
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-width:0;
+  min-height:0;
+  overflow:hidden;
+  padding:8px;
+}
+
+/* board-wrap solo centra el board */
+#board-wrap{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+  height:100%;
+}
+
+/* BOARD: cuadrado, tan grande como quepa */
+#board{
+  display:grid;
+  grid-template-columns:repeat(11,1fr);
+  grid-template-rows:repeat(11,1fr);
+  /* en desktop: limitado por altura disponible y ancho menos el panel */
+  width:min(calc(100vw - var(--panel-w) - 20px), calc(100dvh - var(--topbar-h) - 20px));
+  height:min(calc(100vw - var(--panel-w) - 20px), calc(100dvh - var(--topbar-h) - 20px));
+  aspect-ratio:1/1;
+  flex-shrink:0;
+}
+
+/* Mobile / portrait: sin panel lateral */
+@media (max-width:767px),(orientation:portrait){
+  #game-main-row{ flex-direction:column; }
+  #right-panel{ display:none !important; }
+  #board{
+    width:min(100vw - 4px, calc(100dvh - 200px));
+    height:min(100vw - 4px, calc(100dvh - 200px));
+  }
+  #board-col{ padding:4px; }
+}
+
+/* Desktop: escalar fuentes de celdas */
+@media (min-width:768px) and (orientation:landscape){
+  .cell-name{font-size:clamp(6px,0.75vw,11px) !important;}
+  .cell-price{font-size:clamp(5px,0.65vw,9px) !important;}
+  .cell-icon{font-size:clamp(11px,1.4vw,20px) !important;}
+  .corner-label{font-size:clamp(7px,0.8vw,12px) !important;}
+  .board-token{
+    width:clamp(12px,1.5vw,20px);
+    height:clamp(12px,1.5vw,20px);
+    font-size:clamp(7px,0.8vw,10px);
+  }
+  .house-dot{width:clamp(4px,0.5vw,7px);height:clamp(4px,0.5vw,7px);}
+}
+.cell{border:1px solid #3d3020;background:#1e1609;position:relative;display:flex;
+  flex-direction:column;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;transition:background 0.1s;}
+.cell.corner{background:#151008;}
+.corner-label{font-size:6px;text-align:center;line-height:1.2;color:#a08060;font-family:'Oswald',sans-serif;}
+.color-band{width:100%;height:22%;position:absolute;top:0;}
+.bottom .color-band{top:auto;bottom:0;}
+.left-col .color-band{width:22%;height:100%;top:0;left:auto;right:0;}
+.right-col .color-band{width:22%;height:100%;top:0;left:0;}
+.cell-name{font-size:5px;text-align:center;line-height:1.3;color:#c8b89a;padding:2px;word-break:break-word;font-family:'Oswald',sans-serif;}
+.cell-price{font-size:5px;color:#8a7a5a;text-align:center;}
+.cell-icon{font-size:10px;text-align:center;}
+.board-tokens{position:absolute;bottom:1px;left:0;width:100%;display:flex;gap:1px;flex-wrap:wrap;justify-content:center;}
+.board-token{width:11px;height:11px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:'Oswald',sans-serif;font-size:6px;font-weight:700;color:white;
+  box-shadow:0 1px 4px #000a;border:1.5px solid rgba(255,255,255,0.5);flex-shrink:0;}
+
+@keyframes cellGlow{0%{box-shadow:none;}15%{box-shadow:inset 0 0 0 2px #f0c040,0 0 14px #f0c040bb;}45%{box-shadow:inset 0 0 0 3px #f0c040,0 0 22px #f0c040dd;}80%{box-shadow:inset 0 0 0 2px #d4a017,0 0 8px #d4a01799;}100%{box-shadow:none;}}
+.cell.landing{animation:cellGlow 1s ease-out forwards;z-index:5;}
+@keyframes stepGlow{0%{box-shadow:none;}30%{box-shadow:inset 0 0 0 2px #f0c040,0 0 12px #f0c040cc;}100%{box-shadow:none;}}
+.cell.stepping{animation:stepGlow 0.32s ease-out forwards;z-index:5;}
+
+.houses-display{position:absolute;top:24%;left:0;width:100%;display:flex;justify-content:center;gap:1px;}
+.bottom .houses-display{top:auto;bottom:24%;}
+.house-dot{width:4px;height:4px;background:#1e8449;border-radius:1px;}
+.house-dot.hotel{background:#c0392b;width:6px;}
+
+/* ─── RIGHT PANEL (desktop sidebar) ─── */
+#right-panel{
+  width:var(--panel-w);
+  min-width:var(--panel-w);
+  max-width:var(--panel-w);
+  flex-shrink:0;
+  background:var(--bg);
+  border-left:1px solid var(--dim);
+  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+}
+#right-panel #log-wrap{
+  padding:10px 14px 6px;
+  flex-shrink:0;
+}
+#right-panel #log{
+  max-height:200px;
+  font-size:12px;
+  line-height:1.8;
+  padding:8px 10px;
+}
+#right-panel .log-entry{ font-size:12px; line-height:1.8; }
+#right-panel #panel-p1,
+#right-panel #panel-p2,
+#right-panel #panel-online{
+  border-top:1px solid var(--dim) !important;
+  border-left:none !important;
+  border-right:none !important;
+  border-bottom:none !important;
+  width:100%;
+  flex-shrink:0;
+}
+#right-panel #panel-p2 .panel-inner{ transform:none !important; }
+#right-panel .panel-title{ font-size:16px; letter-spacing:3px; margin-bottom:10px; }
+#right-panel .btn{ font-size:14px; padding:11px 8px; letter-spacing:1px; }
+#right-panel .die{ width:44px; height:44px; font-size:26px; }
+#right-panel .dice-sum{ font-size:26px; }
+#right-panel .dice-info{ font-size:12px; }
+#right-panel .waiting-turn-banner{ font-size:13px; padding:10px 14px; }
+
+/* LOG — compacto */
+#log-wrap{width:100%;padding:2px 10px 3px;flex-shrink:0;}
+#log{background:#12100a;border-radius:8px;padding:4px 8px;font-size:10px;
+  color:#8a7a5a;max-height:36px;overflow-y:auto;line-height:1.7;
+  display:flex;flex-direction:column-reverse;gap:0;}
+.log-entry{display:flex;align-items:baseline;gap:3px;color:var(--text);}
+.log-tag{font-size:7px;flex-shrink:0;}
+
+/* Panel inferior — compacto */
+#panel-p2{width:100%;background:var(--panel);border-bottom:2px solid var(--p2color);padding:8px 12px;flex-shrink:0;}
+#panel-p2 .panel-inner{transform:rotate(180deg);}
+#panel-p1{width:100%;background:var(--panel);border-top:2px solid var(--p1color);padding:8px 12px;flex-shrink:0;}
+#panel-p1.hidden,#panel-p2.hidden{display:none;}
+#panel-online{width:100%;background:var(--panel);border-top:2px solid var(--gold);padding:8px 12px;flex-shrink:0;}
+#panel-online.hidden{display:none;}
+
+.panel-title{font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:2px;color:var(--gold);margin-bottom:6px;}
+.btn-row{display:flex;gap:6px;flex-wrap:wrap;}
+.btn{border:none;border-radius:8px;padding:9px 10px;font-family:'Oswald',sans-serif;
+  font-size:12px;letter-spacing:1px;cursor:pointer;transition:all 0.15s;flex:1;min-width:70px;}
+.btn:active{transform:scale(0.95);}
+.btn-primary{background:linear-gradient(135deg,#d4a017,#f0c040);color:#1a1209;}
+.btn-danger{background:#c0392b;color:white;}
+.btn-info{background:#2471a3;color:white;}
+.btn-green{background:#1e8449;color:white;}
+.btn-dark{background:#2d2010;color:var(--text);border:1px solid var(--dim);}
+.btn-orange{background:#ca6f1e;color:white;}
+.btn-purple{background:#7d3c98;color:white;}
+.btn:disabled{opacity:0.35;pointer-events:none;}
+
+/* Dados — compactos con puntos negros */
+.dice-display{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.die{width:38px;height:38px;background:#f5f0e8;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:2px 2px 0 #3d2f1a;color:#1a1209;}
+.die.rolling{animation:roll 0.4s;}
+@keyframes roll{0%,100%{transform:rotate(0)}25%{transform:rotate(-15deg)}75%{transform:rotate(15deg)}}
+.dice-sum{font-family:'Oswald',sans-serif;font-size:22px;color:var(--gold);}
+.dice-info{font-size:10px;color:#8a7a5a;}
+
+.waiting-turn-banner{background:#12100a;border-radius:8px;padding:7px 12px;
+  text-align:center;font-size:11px;color:#8a7a5a;margin-bottom:6px;letter-spacing:1px;}
+
+/* extra btns row */
+#extra-btns-p1,#extra-btns-p2,#extra-btns-online{margin-top:5px;}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:#000b;z-index:100;align-items:center;justify-content:center;padding:16px;}
+.modal-overlay.active{display:flex;}
+.modal-overlay.p2-modal{transform:rotate(180deg);}
+.modal{background:var(--panel);border:1.5px solid var(--dim);border-radius:20px;width:100%;max-width:380px;max-height:85dvh;overflow-y:auto;padding:20px;}
+.modal-title{font-family:'Oswald',sans-serif;font-size:20px;color:var(--gold);margin-bottom:4px;}
+.modal-subtitle{font-size:12px;color:#8a7a5a;margin-bottom:12px;}
+.modal-body{font-size:14px;line-height:1.7;color:var(--text);margin-bottom:16px;}
+.modal-btns{display:flex;gap:10px;flex-wrap:wrap;}
+.color-chip{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:middle;margin-right:4px;}
+.prop-detail{background:#12100a;border-radius:10px;padding:12px;margin-bottom:12px;}
+.prop-row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid #2d2010;}
+.prop-row:last-child{border:none;}
+.prop-row span:last-child{color:var(--gold2);}
+.prop-list{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;max-height:200px;overflow-y:auto;}
+.prop-item{background:#12100a;border-radius:8px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;}
+.prop-item-name{font-size:13px;}
+.prop-item-detail{font-size:11px;color:#8a7a5a;}
+.prop-item.selected-trade{border:2px solid var(--gold);background:#2d2010;}
+.auction-box{background:#12100a;border:2px solid var(--gold);border-radius:12px;padding:14px;margin-bottom:10px;text-align:center;}
+.auction-price{font-family:'Oswald',sans-serif;font-size:38px;color:var(--gold2);}
+.auction-input{background:#1e1609;border:1.5px solid var(--dim);border-radius:8px;padding:10px 12px;
+  color:var(--white);font-size:18px;font-family:'Oswald',sans-serif;outline:none;flex:1;min-width:80px;width:100%;}
+.auction-input:focus{border-color:var(--gold);}
+
+/* Status badge online */
+.player-count-btn{
+  flex:1;border:1.5px solid var(--dim);border-radius:10px;padding:10px;
+  background:#12100a;color:var(--text);font-family:'Oswald',sans-serif;
+  font-size:14px;letter-spacing:1px;cursor:pointer;transition:all 0.15s;
+}
+.player-count-btn.selected{
+  border-color:var(--gold);background:#2d2010;color:var(--gold2);
+  box-shadow:0 0 10px #d4a01740;
+}
+.player-count-btn:active{transform:scale(0.97);}
+
+/* Status badge online */
+.conn-status{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:#8a7a5a;letter-spacing:1px;margin-bottom:10px;}
+.conn-dot{width:8px;height:8px;border-radius:50%;background:#e63946;}
+.conn-dot.ok{background:#2ecc71;box-shadow:0 0 6px #2ecc71;}
+.conn-dot.waiting{background:#f0c040;animation:blink 1s infinite;}
+
+/* WIN */
+#win-screen{background:radial-gradient(ellipse at center,#2d1f0a,#0a0806);}
+.win-title{font-family:'Oswald',sans-serif;font-size:64px;font-weight:700;
+  background:linear-gradient(135deg,#d4a017,#f0c040);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-align:center;margin-bottom:8px;}
+.win-token{font-size:80px;text-align:center;margin-bottom:16px;}
+.win-name{font-family:'Oswald',sans-serif;font-size:28px;color:var(--white);text-align:center;margin-bottom:24px;}
+.win-stats{background:var(--panel);border-radius:16px;padding:20px;width:100%;max-width:340px;margin-bottom:24px;}
+.win-stat{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--dim);font-size:14px;}
+.win-stat:last-child{border:none;}
+.win-stat span:last-child{color:var(--gold2);font-weight:700;}
+
+/* Toast */
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-80px);
+  background:#2d2010;border:1.5px solid var(--gold);border-radius:12px;padding:10px 20px;
+  font-family:'Oswald',sans-serif;font-size:14px;color:var(--gold2);z-index:999;
+  transition:transform 0.3s;pointer-events:none;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<!-- ═══ MAIN MENU ═══ -->
+<div class="screen active" id="main-menu">
+  <div class="logo">MONOPOLIO</div>
+  <div class="logo-sub">Edición clásica</div>
+  <div class="menu-btns">
+    <button class="menu-btn menu-btn-offline" onclick="goSetup()">
+      <span class="menu-icon">🎲</span>
+      <div>
+        <div>OFFLINE</div>
+        <div class="menu-btn-desc">2 jugadores · un dispositivo</div>
+      </div>
+    </button>
+    <button class="menu-btn menu-btn-online" onclick="goOnlineLobby()">
+      <span class="menu-icon">📡</span>
+      <div>
+        <div>ONLINE</div>
+        <div class="menu-btn-desc">2 jugadores · cada uno en su cel</div>
+      </div>
+    </button>
+  </div>
+</div>
+
+<!-- ═══ ONLINE LOBBY (selector) ═══ -->
+<div class="screen" id="online-lobby">
+  <div class="logo" style="font-size:40px;margin-bottom:6px;">MONOPOLIO</div>
+  <div class="logo-sub" style="margin-bottom:28px;">MODO ONLINE</div>
+  <div class="menu-btns">
+    <button class="menu-btn" style="background:linear-gradient(135deg,#d4a017,#f0c040);color:#1a1209;" onclick="goScreen('online-create')">
+      <span class="menu-icon">🏠</span>
+      <div>
+        <div>CREAR SALA</div>
+        <div class="menu-btn-desc">Genera un código y espera a tus amigos</div>
+      </div>
+    </button>
+    <button class="menu-btn menu-btn-online" onclick="goScreen('online-join')">
+      <span class="menu-icon">🚀</span>
+      <div>
+        <div>UNIRSE A SALA</div>
+        <div class="menu-btn-desc">Ingresa el código que te compartieron</div>
+      </div>
+    </button>
+  </div>
+  <button class="back-btn" onclick="goScreen('main-menu')">← VOLVER</button>
+</div>
+
+<!-- ═══ ONLINE CREATE ═══ -->
+<div class="screen" id="online-create">
+  <div class="logo" style="font-size:36px;margin-bottom:4px;">MONOPOLIO</div>
+  <div class="logo-sub" style="margin-bottom:18px;">CREAR SALA</div>
+  <div class="online-options">
+    <div class="online-card">
+      <div class="online-card-title">👥 JUGADORES</div>
+      <div style="display:flex;gap:10px;margin-bottom:14px;">
+        <button id="btn-2p" class="player-count-btn selected" onclick="selectPlayerCount(2)">2 jugadores</button>
+        <button id="btn-3p" class="player-count-btn" onclick="selectPlayerCount(3)">3 jugadores</button>
+      </div>
+      <div class="online-card-title">🎮 TUS DATOS</div>
+      <input class="input-field" id="create-name" placeholder="Tu nombre..." maxlength="12">
+      <div style="font-size:11px;color:#7a6040;letter-spacing:2px;margin-bottom:8px;">TU TOKEN</div>
+      <div class="token-row" id="create-tokens"></div>
+      <br>
+      <button class="action-btn btn-gold" onclick="createRoom()">✨ CREAR SALA</button>
+    </div>
+  </div>
+  <button class="back-btn" onclick="goScreen('online-lobby')">← VOLVER</button>
+</div>
+
+<!-- ═══ ONLINE JOIN ═══ -->
+<div class="screen" id="online-join">
+  <div class="logo" style="font-size:36px;margin-bottom:4px;">MONOPOLIO</div>
+  <div class="logo-sub" style="margin-bottom:18px;">UNIRSE A SALA</div>
+  <div class="online-options">
+    <div class="online-card">
+      <div class="online-card-title">🚀 TUS DATOS</div>
+      <input class="input-field" id="join-name" placeholder="Tu nombre..." maxlength="12">
+      <input class="input-field code-input" id="join-code" placeholder="CÓDIGO" maxlength="20" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+      <div style="font-size:11px;color:#7a6040;letter-spacing:2px;margin-bottom:8px;">TU TOKEN</div>
+      <div class="token-row" id="join-tokens"></div>
+      <br>
+      <button class="action-btn btn-blue" onclick="joinRoom()">🔗 UNIRSE</button>
+    </div>
+  </div>
+  <button class="back-btn" onclick="goScreen('online-lobby')">← VOLVER</button>
+</div>
+
+<!-- ═══ WAITING ROOM ═══ -->
+<div class="screen" id="waiting-room">
+  <div class="logo" style="font-size:40px;margin-bottom:6px;">MONOPOLIO</div>
+  <div class="logo-sub" style="margin-bottom:16px;">SALA DE ESPERA</div>
+  <div class="room-code-display">
+    <div class="room-code-label">COMPARTE ESTE CÓDIGO</div>
+    <div class="room-code-number" id="display-code">—</div>
+    <div class="room-code-hint" id="room-code-hint">Esperando jugadores...</div>
+  </div>
+  <div class="players-list" id="players-list"></div>
+  <div class="conn-status"><div class="conn-dot waiting" id="conn-dot"></div><span id="conn-label">Conectando...</span></div>
+  <div class="waiting-status" id="waiting-status">Esperando jugadores<span class="waiting-dots"></span></div>
+  <button class="action-btn btn-gold" id="start-online-btn" style="max-width:340px;display:none;" onclick="hostStartGame()">🎲 ¡COMENZAR!</button>
+  <button class="back-btn" onclick="leaveRoom()">← SALIR</button>
+</div>
+
+<!-- ═══ SETUP OFFLINE ═══ -->
+<div class="screen" id="setup">
+  <div class="logo">MONOPOLIO</div>
+  <div class="logo-sub">Edición clásica · 2 jugadores</div>
+  <div class="player-setup">
+    <div class="player-card" style="border-left:3px solid var(--p1color)">
+      <div class="player-card-title" style="color:var(--p1color)">JUGADOR 1 — ROJO</div>
+      <input class="name-input" id="p1-name" placeholder="Tu nombre..." maxlength="12" value="Jugador 1">
+      <div class="token-row" id="p1-tokens"></div>
+    </div>
+    <div class="player-card" style="border-left:3px solid var(--p2color)">
+      <div class="player-card-title" style="color:var(--p2color)">JUGADOR 2 — AZUL</div>
+      <input class="name-input" id="p2-name" placeholder="Tu nombre..." maxlength="12" value="Jugador 2">
+      <div class="token-row" id="p2-tokens"></div>
+    </div>
+  </div>
+  <button class="start-btn" onclick="startOfflineGame()">🎲 COMENZAR</button>
+  <button class="back-btn" onclick="goScreen('main-menu')">← MENÚ</button>
+</div>
+
+<!-- ═══ GAME ═══ -->
+<div class="screen" id="game-screen">
+
+  <!-- Barra horizontal de jugadores (arriba) -->
+  <div id="player-bar-strip"></div>
+
+  <!-- Fila principal: tablero + panel lateral (desktop) -->
+  <div id="game-main-row" style="display:flex;flex:1;min-height:0;overflow:hidden;">
+
+  <!-- Panel P2 (offline, arriba rotado) — en desktop queda en panel lateral -->
+  <div id="panel-p2" class="hidden">
+    <div class="panel-inner">
+      <div class="panel-title" id="panel-title-p2">TURNO DE —</div>
+      <div class="dice-display">
+        <div class="die" id="die1-p2">🎲</div>
+        <div class="die" id="die2-p2">🎲</div>
+        <div style="flex:1"><div class="dice-sum" id="dice-sum-p2"></div><div class="dice-info" id="dice-info-p2"></div></div>
+      </div>
+      <div class="btn-row" id="action-btns-p2">
+        <button class="btn btn-primary" id="btn-roll-p2" onclick="rollDice()">🎲 TIRAR</button>
+        <button class="btn btn-dark" id="btn-props-p2" onclick="showProps()">🏠 PROPS</button>
+      </div>
+      <div class="btn-row" id="extra-btns-p2" style="margin-top:5px;display:none;">
+        <button class="btn btn-green" id="btn-buy-p2" onclick="buyProperty()" style="display:none">💰 COMPRAR</button>
+        <button class="btn btn-orange" id="btn-mortgage-buy-p2" onclick="showMortgageToAfford()" style="display:none">🏦 HIPOTECAR</button>
+        <button class="btn btn-info" id="btn-auction-p2" onclick="startAuction()" style="display:none">🔨 SUBASTAR</button>
+        <button class="btn btn-dark" id="btn-skip-buy-p2" onclick="skipBuy()" style="display:none">❌ PASAR</button>
+        <button class="btn btn-info" id="btn-build-p2" onclick="showBuildModal()" style="display:none">🏗️ CONSTRUIR</button>
+        <button class="btn btn-dark" id="btn-mortgage-p2" onclick="showMortgageModal()" style="display:none">🏦 HIPOTECAR</button>
+        <button class="btn btn-danger" id="btn-jail-pay-p2" onclick="payJailFine()" style="display:none">⛓️ PAGAR S/50</button>
+        <button class="btn btn-info" id="btn-jail-roll-p2" onclick="rollJail()" style="display:none">🎲 CÁRCEL</button>
+        <button class="btn btn-purple" id="btn-trade-p2" onclick="showTradeModal()" style="display:none">🤝 TRADE</button>
+        <button class="btn btn-primary" id="btn-end-turn-p2" onclick="endTurn()" style="display:none">➡️ FIN</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Columna izquierda: tablero + log -->
+  <div id="board-col" style="display:flex;flex-direction:column;flex:1;min-width:0;align-items:center;justify-content:center;">
+    <div id="board-wrap"><div id="board"></div></div>
+    <div id="log-wrap"><div id="log"></div></div>
+  </div>
+
+  <!-- Panel lateral derecho (desktop) -->
+  <div id="right-panel" style="display:none;flex-direction:column;overflow:hidden;min-width:260px;max-width:360px;border-left:1px solid var(--dim);background:var(--panel);">
+  </div>
+
+  <!-- Panel P1 (offline, abajo — mobile) -->
+  <div id="panel-p1" class="hidden">
+    <div class="panel-inner">
+      <div class="panel-title" id="panel-title-p1">TURNO DE —</div>
+      <div class="dice-display">
+        <div class="die" id="die1-p1">🎲</div>
+        <div class="die" id="die2-p1">🎲</div>
+        <div style="flex:1"><div class="dice-sum" id="dice-sum-p1"></div><div class="dice-info" id="dice-info-p1"></div></div>
+      </div>
+      <div class="btn-row" id="action-btns-p1">
+        <button class="btn btn-primary" id="btn-roll-p1" onclick="rollDice()">🎲 TIRAR</button>
+        <button class="btn btn-dark" id="btn-props-p1" onclick="showProps()">🏠 PROPS</button>
+      </div>
+      <div class="btn-row" id="extra-btns-p1" style="margin-top:5px;display:none;">
+        <button class="btn btn-green" id="btn-buy-p1" onclick="buyProperty()" style="display:none">💰 COMPRAR</button>
+        <button class="btn btn-orange" id="btn-mortgage-buy-p1" onclick="showMortgageToAfford()" style="display:none">🏦 HIPOTECAR</button>
+        <button class="btn btn-info" id="btn-auction-p1" onclick="startAuction()" style="display:none">🔨 SUBASTAR</button>
+        <button class="btn btn-dark" id="btn-skip-buy-p1" onclick="skipBuy()" style="display:none">❌ PASAR</button>
+        <button class="btn btn-info" id="btn-build-p1" onclick="showBuildModal()" style="display:none">🏗️ CONSTRUIR</button>
+        <button class="btn btn-dark" id="btn-mortgage-p1" onclick="showMortgageModal()" style="display:none">🏦 HIPOTECAR</button>
+        <button class="btn btn-danger" id="btn-jail-pay-p1" onclick="payJailFine()" style="display:none">⛓️ PAGAR S/50</button>
+        <button class="btn btn-info" id="btn-jail-roll-p1" onclick="rollJail()" style="display:none">🎲 CÁRCEL</button>
+        <button class="btn btn-purple" id="btn-trade-p1" onclick="showTradeModal()" style="display:none">🤝 TRADE</button>
+        <button class="btn btn-primary" id="btn-end-turn-p1" onclick="endTurn()" style="display:none">➡️ FIN</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel ONLINE -->
+  <div id="panel-online" class="hidden">
+    <div class="panel-inner">
+      <div class="panel-title" id="panel-title-online">TURNO DE —</div>
+      <div id="waiting-turn-banner" class="waiting-turn-banner" style="display:none;">⏳ Esperando turno de <span id="waiting-name"></span>...</div>
+      <div id="online-controls">
+        <div class="dice-display">
+          <div class="die" id="die1-online">🎲</div>
+          <div class="die" id="die2-online">🎲</div>
+          <div style="flex:1"><div class="dice-sum" id="dice-sum-online"></div><div class="dice-info" id="dice-info-online"></div></div>
+        </div>
+        <div class="btn-row" id="action-btns-online">
+          <button class="btn btn-primary" id="btn-roll-online" onclick="rollDice()">🎲 TIRAR</button>
+          <button class="btn btn-dark" id="btn-props-online" onclick="showProps()">🏠 PROPS</button>
+        </div>
+        <div class="btn-row" id="extra-btns-online" style="margin-top:5px;display:none;">
+          <button class="btn btn-green" id="btn-buy-online" onclick="buyProperty()" style="display:none">💰 COMPRAR</button>
+          <button class="btn btn-orange" id="btn-mortgage-buy-online" onclick="showMortgageToAfford()" style="display:none">🏦 HIPOTECAR</button>
+          <button class="btn btn-info" id="btn-auction-online" onclick="startAuction()" style="display:none">🔨 SUBASTAR</button>
+          <button class="btn btn-dark" id="btn-skip-buy-online" onclick="skipBuy()" style="display:none">❌ PASAR</button>
+          <button class="btn btn-info" id="btn-build-online" onclick="showBuildModal()" style="display:none">🏗️ CONSTRUIR</button>
+          <button class="btn btn-dark" id="btn-mortgage-online" onclick="showMortgageModal()" style="display:none">🏦 HIPOTECAR</button>
+          <button class="btn btn-danger" id="btn-jail-pay-online" onclick="payJailFine()" style="display:none">⛓️ PAGAR S/50</button>
+          <button class="btn btn-info" id="btn-jail-roll-online" onclick="rollJail()" style="display:none">🎲 CÁRCEL</button>
+          <button class="btn btn-purple" id="btn-trade-online" onclick="showTradeModal()" style="display:none">🤝 TRADE</button>
+          <button class="btn btn-primary" id="btn-end-turn-online" onclick="endTurn()" style="display:none">➡️ FIN TURNO</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div><!-- /game-main-row -->
+</div>
+
+<!-- ═══ WIN ═══ -->
+<div class="screen" id="win-screen">
+  <div class="win-title">¡GANADOR!</div>
+  <div class="win-token" id="win-token"></div>
+  <div class="win-name" id="win-name"></div>
+  <div class="win-stats" id="win-stats"></div>
+  <button class="start-btn" onclick="location.reload()">🔄 NUEVA PARTIDA</button>
+</div>
+
+<!-- ═══ MODAL ═══ -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
+  <div class="modal" id="modal">
+    <div class="modal-title" id="modal-title"></div>
+    <div class="modal-subtitle" id="modal-subtitle"></div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-btns" id="modal-btns"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ═══ CHAT PANEL ═══ -->
+<div id="chat-panel">
+  <div id="chat-header">
+    <div id="chat-header-title">💬 MENSAJES</div>
+    <button id="chat-close-btn" onclick="toggleChat()">✕</button>
+  </div>
+  <div id="chat-messages"><div class="chat-empty">No hay mensajes aún</div></div>
+  <div id="chat-input-row">
+    <input id="chat-input" type="text" placeholder="Escribe un mensaje..." maxlength="120" onkeydown="if(event.key==='Enter')sendChatMsg()">
+    <button id="chat-send-btn" onclick="sendChatMsg()">ENVIAR</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// CONSTANTES
+// ═══════════════════════════════════════════
+const TOKENS = ['🎩','🚂','🐶','⛵','🎀','🎠','👞','🏎️'];
+// Dados con puntos negros visibles sobre fondo blanco
+const DICE_FACES = ['⚀','⚁','⚂','⚃','⚄','⚅'];
+const P_COLORS = ['#e63946','#457b9d','#2ecc71','#9b59b6'];
+
+const PEER_CONFIG = {
+  host: '0.peerjs.com',
+  port: 443,
+  path: '/',
+  secure: true,
+  config:{
+    iceServers:[
+      {urls:'stun:stun.l.google.com:19302'},
+      {urls:'stun:stun1.l.google.com:19302'},
+      {urls:'stun:stun2.l.google.com:19302'},
+      {urls:'stun:stun.relay.metered.ca:80'},
+      {urls:'turn:global.relay.metered.ca:80',username:'cbdbcc2e826f5224540f5496',credential:'HlTgO/+llzcCwacu'},
+      {urls:'turn:global.relay.metered.ca:80?transport=tcp',username:'cbdbcc2e826f5224540f5496',credential:'HlTgO/+llzcCwacu'},
+      {urls:'turn:global.relay.metered.ca:443',username:'cbdbcc2e826f5224540f5496',credential:'HlTgO/+llzcCwacu'},
+      {urls:'turns:global.relay.metered.ca:443?transport=tcp',username:'cbdbcc2e826f5224540f5496',credential:'HlTgO/+llzcCwacu'}
+    ]
+  },
+  debug:1
+};
+
+const SQUARES=[
+  {i:0,name:'SALIDA',type:'go',icon:'🏁'},
+  {i:1,name:'Mediterraneo',type:'prop',color:'#8B4513',price:60,rent:[2,10,30,90,160,250],house:50,mortgage:30,group:0},
+  {i:2,name:'Arca Comunidad',type:'community',icon:'📬'},
+  {i:3,name:'Báltico',type:'prop',color:'#8B4513',price:60,rent:[4,20,60,180,320,450],house:50,mortgage:30,group:0},
+  {i:4,name:'Imp. Renta',type:'tax',amount:200,icon:'💸'},
+  {i:5,name:'Ferr. Sur',type:'railroad',price:200,icon:'🚂'},
+  {i:6,name:'Oriental',type:'prop',color:'#87CEEB',price:100,rent:[6,30,90,270,400,550],house:50,mortgage:50,group:1},
+  {i:7,name:'Azar',type:'chance',icon:'❓'},
+  {i:8,name:'Vermont',type:'prop',color:'#87CEEB',price:100,rent:[6,30,90,270,400,550],house:50,mortgage:50,group:1},
+  {i:9,name:'Conn.',type:'prop',color:'#87CEEB',price:120,rent:[8,40,100,300,450,600],house:50,mortgage:60,group:1},
+  {i:10,name:'CÁRCEL',type:'jail',icon:'⛓️'},
+  {i:11,name:'St. Charles',type:'prop',color:'#FF69B4',price:140,rent:[10,50,150,450,625,750],house:100,mortgage:70,group:2},
+  {i:12,name:'Eléctrica',type:'utility',price:150,icon:'⚡'},
+  {i:13,name:'States Ave',type:'prop',color:'#FF69B4',price:140,rent:[10,50,150,450,625,750],house:100,mortgage:70,group:2},
+  {i:14,name:'Virginia',type:'prop',color:'#FF69B4',price:160,rent:[12,60,180,500,700,900],house:100,mortgage:80,group:2},
+  {i:15,name:'Ferr. Penn.',type:'railroad',price:200,icon:'🚂'},
+  {i:16,name:'St. James',type:'prop',color:'#FF8C00',price:180,rent:[14,70,200,550,750,950],house:100,mortgage:90,group:3},
+  {i:17,name:'Arca Com.',type:'community',icon:'📬'},
+  {i:18,name:'Tennessee',type:'prop',color:'#FF8C00',price:180,rent:[14,70,200,550,750,950],house:100,mortgage:90,group:3},
+  {i:19,name:'New York',type:'prop',color:'#FF8C00',price:200,rent:[16,80,220,600,800,1000],house:100,mortgage:100,group:3},
+  {i:20,name:'Est. LIBRE',type:'free',icon:'🚗'},
+  {i:21,name:'Kentucky',type:'prop',color:'#FF0000',price:220,rent:[18,90,250,700,875,1050],house:150,mortgage:110,group:4},
+  {i:22,name:'Azar',type:'chance',icon:'❓'},
+  {i:23,name:'Indiana',type:'prop',color:'#FF0000',price:220,rent:[18,90,250,700,875,1050],house:150,mortgage:110,group:4},
+  {i:24,name:'Illinois',type:'prop',color:'#FF0000',price:240,rent:[20,100,300,750,925,1100],house:150,mortgage:120,group:4},
+  {i:25,name:'Ferr. B&O',type:'railroad',price:200,icon:'🚂'},
+  {i:26,name:'Atlantic',type:'prop',color:'#FFFF00',price:260,rent:[22,110,330,800,975,1150],house:150,mortgage:130,group:5},
+  {i:27,name:'Ventnor',type:'prop',color:'#FFFF00',price:260,rent:[22,110,330,800,975,1150],house:150,mortgage:130,group:5},
+  {i:28,name:'Agua',type:'utility',price:150,icon:'💧'},
+  {i:29,name:'Marvin',type:'prop',color:'#FFFF00',price:280,rent:[24,120,360,850,1025,1200],house:150,mortgage:140,group:5},
+  {i:30,name:'IR CÁRCEL',type:'go-to-jail',icon:'👮'},
+  {i:31,name:'Pacific',type:'prop',color:'#008000',price:300,rent:[26,130,390,900,1100,1275],house:200,mortgage:150,group:6},
+  {i:32,name:'N. Carolina',type:'prop',color:'#008000',price:300,rent:[26,130,390,900,1100,1275],house:200,mortgage:150,group:6},
+  {i:33,name:'Arca Com.',type:'community',icon:'📬'},
+  {i:34,name:'Pennsylvania',type:'prop',color:'#008000',price:320,rent:[28,150,450,1000,1200,1400],house:200,mortgage:160,group:6},
+  {i:35,name:'Ferr. Corta',type:'railroad',price:200,icon:'🚂'},
+  {i:36,name:'Azar',type:'chance',icon:'❓'},
+  {i:37,name:'Park Place',type:'prop',color:'#00008B',price:350,rent:[35,175,500,1100,1300,1500],house:200,mortgage:175,group:7},
+  {i:38,name:'Imp. Lujo',type:'tax',amount:100,icon:'💎'},
+  {i:39,name:'Boardwalk',type:'prop',color:'#00008B',price:400,rent:[50,200,600,1400,1700,2000],house:200,mortgage:200,group:7},
+];
+
+const CHANCE_CARDS=[
+  {text:'Avanza a SALIDA. Cobra S/200.',action:'goto',target:0,collect:200},
+  {text:'Avanza a Boardwalk.',action:'goto',target:39},
+  {text:'Avanza a Park Place.',action:'goto',target:37},
+  {text:'Avanza a Illinois Ave.',action:'goto',target:24},
+  {text:'Avanza a St. Charles.',action:'goto',target:11},
+  {text:'Avanza a la ferroviaria más cercana.',action:'nearest-railroad'},
+  {text:'Avanza a la empresa de servicios más cercana.',action:'nearest-utility'},
+  {text:'Retrocede 3 casillas.',action:'back',amount:3},
+  {text:'Ve directamente a la cárcel.',action:'jail'},
+  {text:'Reparaciones: S/25 por casa, S/100 por hotel.',action:'repairs',house:25,hotel:100},
+  {text:'Paga S/15 de multa.',action:'pay',amount:15},
+  {text:'Cobra S/150 del banco.',action:'collect',amount:150},
+  {text:'Cobras S/50 de cada jugador.',action:'collect-players',amount:50},
+  {text:'Sal de la cárcel gratis.',action:'jail-free'},
+  {text:'Cobra S/200 por servicios bancarios.',action:'collect',amount:200},
+];
+const COMMUNITY_CARDS=[
+  {text:'Cobra S/200 del banco.',action:'collect',amount:200},
+  {text:'Paga S/50 al médico.',action:'pay',amount:50},
+  {text:'Ve directamente a la cárcel.',action:'jail'},
+  {text:'Cobra S/100 de herencia.',action:'collect',amount:100},
+  {text:'Paga S/100 de impuesto.',action:'pay',amount:100},
+  {text:'Cobra S/20 de la lotería.',action:'collect',amount:20},
+  {text:'Reparaciones: S/40 por casa, S/115 por hotel.',action:'repairs',house:40,hotel:115},
+  {text:'Paga S/150 de hospital.',action:'pay',amount:150},
+  {text:'Cobra S/25 de servicios bancarios.',action:'collect',amount:25},
+  {text:'Sal de la cárcel gratis.',action:'jail-free'},
+  {text:'Todos te pagan S/10.',action:'collect-players',amount:10},
+  {text:'Cobra S/100 de acciones.',action:'collect',amount:100},
+  {text:'Paga S/50 de multa de tráfico.',action:'pay',amount:50},
+  {text:'Cobra S/10 por venta de acciones.',action:'collect',amount:10},
+  {text:'Avanza a SALIDA. Cobra S/200.',action:'goto',target:0,collect:200},
+];
+
+// ═══════════════════════════════════════════
+// ESTADO GLOBAL
+// ═══════════════════════════════════════════
+let G = {};
+let MODE = 'offline';
+let MY_PLAYER_ID = null;
+let p1Token = '🎩', p2Token = '🚂';
+
+let peer = null;
+// HOST: array de conexiones [conn_p2, conn_p3]
+// GUEST: una sola conexión al host
+let conns = [];          // solo host usa esto
+let conn = null;         // guest usa esto (su única conn al host)
+let IS_HOST = false;
+let myName = '';
+let myToken = '🎩';
+let _joinCode = '';
+let ROOM_MAX_PLAYERS = 2;   // 2 o 3, lo elige el host
+
+// jugadores conectados en sala de espera (host lleva registro)
+let _waitingPlayers = [];   // [{name,token,connId}]
+
+// ═══════════════════════════════════════════
+// PANTALLAS
+// ═══════════════════════════════════════════
+let _gameActive=false;
+
+function goScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  _gameActive = (id==='game-screen');
+}
+
+// ── Confirmación al presionar botón Atrás del navegador ──
+window.addEventListener('popstate',function(e){
+  if(_gameActive){
+    history.pushState(null,'',location.href);
+    showExitConfirm();
+  }
+});
+history.pushState(null,'',location.href);
+
+window.addEventListener('beforeunload',function(e){
+  if(_gameActive){e.preventDefault();e.returnValue='';}
+});
+
+function showExitConfirm(){
+  openModal('⚠️ ¿Salir de la partida?','',
+    '<div style="text-align:center;padding:8px 0;font-size:14px;color:#c8b89a;">Si sales, se perderá todo el progreso de la partida.</div>',
+    [
+      {label:'🏠 Seguir jugando',cls:'btn-primary',fn:'closeModal()'},
+      {label:'❌ Salir',cls:'btn-danger',fn:'confirmExit()'}
+    ]
+  );
+}
+
+function confirmExit(){
+  _gameActive=false;
+  closeModal();
+  location.reload();
+}
+function goSetup(){goScreen('setup');}
+function goOnlineLobby(){initOnlineLobby();goScreen('online-lobby');}
+
+let _selectedPlayerCount = 2;
+function selectPlayerCount(n){
+  _selectedPlayerCount = n;
+  document.getElementById('btn-2p').classList.toggle('selected', n===2);
+  document.getElementById('btn-3p').classList.toggle('selected', n===3);
+}
+
+// ═══════════════════════════════════════════
+// TOKEN PICKERS
+// ═══════════════════════════════════════════
+window.onload = () => {
+  ['p1','p2'].forEach((p,pi)=>{
+    const wrap=document.getElementById(p+'-tokens');
+    TOKENS.forEach(t=>{
+      const btn=document.createElement('button');
+      btn.className='token-btn'+(pi===0&&t==='🎩'?' selected':pi===1&&t==='🚂'?' selected':'');
+      btn.textContent=t;
+      btn.onclick=()=>{
+        wrap.querySelectorAll('.token-btn').forEach(b=>b.classList.remove('selected'));
+        btn.classList.add('selected');
+        if(p==='p1')p1Token=t;else p2Token=t;
+      };
+      wrap.appendChild(btn);
+    });
+  });
+  initOnlineLobby();
+};
+
+let createToken='🎩', joinToken='🚂';
+
+function initOnlineLobby(){
+  ['create','join'].forEach((mode,mi)=>{
+    const wrap=document.getElementById(mode+'-tokens');
+    wrap.innerHTML='';
+    TOKENS.forEach(t=>{
+      const btn=document.createElement('button');
+      const def=mi===0?'🎩':'🚂';
+      btn.className='token-btn'+(t===def?' selected':'');
+      btn.textContent=t;
+      btn.onclick=()=>{
+        wrap.querySelectorAll('.token-btn').forEach(b=>b.classList.remove('selected'));
+        btn.classList.add('selected');
+        if(mode==='create')createToken=t;else joinToken=t;
+      };
+      wrap.appendChild(btn);
+    });
+  });
+}
+
+// ═══════════════════════════════════════════
+// HELPER: destruir peer anterior
+// ═══════════════════════════════════════════
+function destroyPeer(){
+  conns.forEach(c=>{try{c.close();}catch(e){}});
+  conns=[];
+  if(conn){try{conn.close();}catch(e){} conn=null;}
+  if(peer){try{peer.destroy();}catch(e){} peer=null;}
+}
+
+function normalizeCode(raw){
+  return raw.trim().toLowerCase();
+}
+
+// ═══════════════════════════════════════════
+// HOST — broadcast a todos los guests
+// ═══════════════════════════════════════════
+function broadcast(data, excludeConn){
+  conns.forEach(c=>{
+    if(c===excludeConn) return;
+    if(c && c.open){
+      try{ c.send(data); }catch(e){}
+    }
+  });
+}
+
+// ═══════════════════════════════════════════
+// PEERJS — CREAR SALA (HOST)
+// ═══════════════════════════════════════════
+function createRoom(){
+  const name = document.getElementById('create-name').value.trim()||'Jugador 1';
+  ROOM_MAX_PLAYERS = _selectedPlayerCount;
+  myName=name; myToken=createToken; IS_HOST=true; MY_PLAYER_ID=0;
+  destroyPeer();
+  _waitingPlayers = [{name:myName, token:myToken, connId:null}];
+  const peerId='mono-'+Math.random().toString(36).slice(2,8).toLowerCase();
+  goScreen('waiting-room');
+  setConnStatus('waiting','Iniciando servidor...');
+  document.getElementById('display-code').textContent='...';
+  document.getElementById('room-code-hint').textContent=
+    `Necesitas ${ROOM_MAX_PLAYERS-1} amigo${ROOM_MAX_PLAYERS>2?'s':''} más`;
+  renderWaitingPlayers();
+  peer = new Peer(peerId, PEER_CONFIG);
+  peer.on('open', id=>{
+    document.getElementById('display-code').textContent=id.toUpperCase();
+    setConnStatus('waiting','Esperando jugadores...');
+    document.getElementById('waiting-status').textContent='Comparte el código con tus amigos';
+  });
+  peer.on('connection', c=>{
+    // rechazar si sala llena
+    if(_waitingPlayers.length >= ROOM_MAX_PLAYERS){
+      try{ c.send({type:'room-full'}); c.close(); }catch(e){}
+      return;
+    }
+    conns.push(c);
+    setupHostConnection(c);
+  });
+  peer.on('error', e=>{
+    console.error('Peer error:', e.type, e);
+    const msg=e.type==='unavailable-id'?'ID ocupado, intenta de nuevo.':
+              e.type==='network'?'Error de red.':'Error: '+e.type;
+    setConnStatus('err',msg);showToast(msg);
+  });
+  peer.on('disconnected', ()=>{
+    setConnStatus('waiting','Reconectando...');
+    setTimeout(()=>{ if(peer&&!peer.destroyed) peer.reconnect(); }, 2000);
+  });
+}
+
+function setupHostConnection(c){
+  c.on('open',()=>{
+    setConnStatus('ok','Conectado ✓');
+  });
+  c.on('data', data=>onPeerData(data, c));
+  c.on('close',()=>{
+    // remover jugador de sala si aún estaban esperando
+    const idx=conns.indexOf(c);
+    if(idx!==-1) conns.splice(idx,1);
+    const pi=_waitingPlayers.findIndex(p=>p.connId===c.peer);
+    if(pi!==-1) _waitingPlayers.splice(pi,1);
+    renderWaitingPlayers();
+    setConnStatus('waiting','Un jugador se desconectó');
+    showToast('Un jugador se fue de la sala');
+    // ocultar botón iniciar si ya no hay suficientes
+    checkHostCanStart();
+  });
+  c.on('error',e=>{console.error('Conn error:',e);showToast('Error de conexión');});
+}
+
+// ═══════════════════════════════════════════
+// PEERJS — UNIRSE A SALA (GUEST)
+// ═══════════════════════════════════════════
+function joinRoom(){
+  const name=document.getElementById('join-name').value.trim()||'Jugador';
+  const raw=document.getElementById('join-code').value;
+  const code=normalizeCode(raw);
+  if(!code){showToast('Ingresa el código de sala');return;}
+  myName=name; myToken=joinToken; IS_HOST=false;
+  _joinCode=code;
+  destroyPeer();
+  goScreen('waiting-room');
+  setConnStatus('waiting','Conectando...');
+  document.getElementById('display-code').textContent=code.toUpperCase();
+  document.getElementById('room-code-hint').textContent='Esperando que el host inicie...';
+  peer = new Peer(undefined, PEER_CONFIG);
+  peer.on('open', ()=>{
+    setConnStatus('waiting','Buscando sala '+code.toUpperCase()+'...');
+    attemptJoin(code);
+  });
+  peer.on('error', e=>{
+    console.error('Peer error:', e.type, e);
+    if(e.type==='peer-unavailable'){showToast('Sala no encontrada. Verifica el código.');setConnStatus('err','Sala no encontrada');}
+    else if(e.type==='network'){showToast('Error de red.');setConnStatus('err','Sin conexión');}
+    else{showToast('Error: '+e.type);setConnStatus('err','Error: '+e.type);}
+  });
+}
+
+let _joinAttempts=0;
+function attemptJoin(code){
+  if(conn){try{conn.close();}catch(e){} conn=null;}
+  _joinAttempts++;
+  setConnStatus('waiting','Conectando... (intento '+_joinAttempts+')');
+  conn = peer.connect(code, {reliable:true,serialization:'json'});
+  const timeout = setTimeout(()=>{
+    if(!conn||!conn.open){
+      if(_joinAttempts<3){showToast('Reintentando...');attemptJoin(code);}
+      else{_joinAttempts=0;showToast('No se pudo conectar.');setConnStatus('err','Sin respuesta. Reintentar.');}
+    }
+  }, 8000);
+  conn.on('open',()=>{
+    clearTimeout(timeout);
+    _joinAttempts=0;
+    setConnStatus('ok','Conectado ✓');
+    conn.send({type:'player-info', name:myName, token:myToken});
+    document.getElementById('waiting-status').textContent='¡Conectado! Esperando que el host inicie...';
+  });
+  conn.on('data', data=>onPeerData(data, null));
+  conn.on('close',()=>{clearTimeout(timeout);setConnStatus('err','Conexión perdida');showToast('Conexión perdida');});
+  conn.on('error',e=>{clearTimeout(timeout);console.error('Conn error:',e);showToast('Error de conexión');setConnStatus('err','Error de conexión');});
+}
+
+// ═══════════════════════════════════════════
+// MENSAJES ENTRE PEERS
+// ═══════════════════════════════════════════
+function onPeerData(data, fromConn){
+  // ── SALA DE ESPERA ──
+  if(data.type==='room-full'){
+    showToast('La sala está llena');
+    goScreen('online-lobby');
+    return;
+  }
+
+  if(data.type==='player-info'){
+    // Solo el host procesa esto
+    if(!IS_HOST) return;
+    // asignar ID según posición
+    const pid = _waitingPlayers.length; // 1, 2...
+    _waitingPlayers.push({name:data.name, token:data.token, connId:fromConn.peer});
+    // confirmar al guest su ID y la lista actual
+    fromConn.send({type:'assign-id', pid, players:_waitingPlayers, maxPlayers:ROOM_MAX_PLAYERS});
+    // notificar a todos los guests ya conectados
+    broadcast({type:'waiting-update', players:_waitingPlayers, maxPlayers:ROOM_MAX_PLAYERS}, fromConn);
+    renderWaitingPlayers();
+    checkHostCanStart();
+    return;
+  }
+
+  if(data.type==='assign-id'){
+    // Guest recibe su ID y lista de jugadores actuales
+    MY_PLAYER_ID = data.pid;
+    ROOM_MAX_PLAYERS = data.maxPlayers;
+    _waitingPlayers = data.players;
+    renderWaitingPlayers();
+    document.getElementById('waiting-status').textContent='¡Conectado! Esperando que el host inicie...';
+    return;
+  }
+
+  if(data.type==='waiting-update'){
+    _waitingPlayers = data.players;
+    ROOM_MAX_PLAYERS = data.maxPlayers;
+    renderWaitingPlayers();
+    return;
+  }
+
+  // ── JUEGO ──
+  if(data.type==='game-start'){
+    MY_PLAYER_ID = data.pid; // host ya asignó IDs
+    startOnlineGame(data.state);
+    return;
+  }
+
+  if(data.type==='game-state'){
+    // Si soy host: reenviar a los demás guests (relay)
+    if(IS_HOST) broadcast(data, fromConn);
+    applyRemoteState(data.state);
+    return;
+  }
+
+  if(data.type==='animate-move'){
+    if(IS_HOST) broadcast(data, fromConn);
+    G.players[data.pidx].pos = data.startPos;
+    movePlayerAnimated(data.pidx, data.steps, data.doubles, true);
+    return;
+  }
+
+  if(data.type==='trade-rejected'){
+    if(IS_HOST) broadcast(data, fromConn);
+    showToast(G.players[data.byPidx]?.name+' rechazó el trade.');
+    addLog(`❌ ${G.players[data.byPidx]?.name||'Rival'} rechazó el trade.`);
+    _trade={offerIdx:null,requestIdx:null};
+    return;
+  }
+
+  if(data.type==='order-roll'){
+    if(IS_HOST) broadcast(data, null);
+    receiveOrderRoll(data.pidx, data.roll);
+    return;
+  }
+
+  if(data.type==='order-final'){
+    // Guests reciben el orden definitivo del host
+    _orderRolls = data.finalOrder;
+    const orderedPlayers = _orderRolls.map(r=>({...G.players[r.pidx], roll:r.roll}));
+    showOrderResult(orderedPlayers);
+    return;
+  }
+
+  if(data.type==='order-tiebreak'){
+    if(IS_HOST) broadcast(data, null);
+    _orderRolls.push({pidx:data.pidx, roll:data.roll});
+    addLog(`${G.players[data.pidx].name} sacó ${data.roll} en el desempate.`);
+    if(data.idx+1 < data.tiedPidxs.length){
+      showTiebreakerModal(data.tiedPidxs, data.idx+1);
+    } else {
+      const maxRoll=Math.max(..._orderRolls.map(r=>r.roll));
+      const stillTied=_orderRolls.filter(r=>r.roll===maxRoll);
+      if(stillTied.length>1){
+        addLog(`⚠️ Otro empate.`);
+        setTimeout(()=>{
+          const tiedAgain=stillTied.map(r=>r.pidx);
+          _orderRolls=_orderRolls.filter(r=>!tiedAgain.includes(r.pidx));
+          _fixedOrder=[..._fixedOrder,..._orderRolls];
+          _orderRolls=[];
+          showTiebreakerModal(tiedAgain,0);
+        },1000);
+      } else {
+        const allRolls=[..._fixedOrder,..._orderRolls];
+        allRolls.sort((a,b)=>b.roll-a.roll);
+        _orderRolls=allRolls;
+        applyFinalOrder();
+      }
+    }
+    return;
+  }
+
+  if(data.type==='chat-msg'){
+    if(IS_HOST) broadcast(data, fromConn);
+    receiveChat(data.msg);
+    return;
+  }
+
+  if(data.type==='auction-state'){
+    if(IS_HOST) broadcast(data, fromConn);
+    _auction=data.auction;
+    showAuctionModal();
+    return;
+  }
+
+  if(data.type==='trade-proposal'){
+    if(IS_HOST) broadcast(data, fromConn);
+    // Solo el destinatario muestra el modal
+    if(data.toPidx !== MY_PLAYER_ID) return;
+    G = data.state;
+    rebuildLog(); updateHUD(); renderBoard();
+    _pendingTradeFrom = data.fromPidx;
+    _pendingTradeTo = data.toPidx;
+    _pendingTradeOffer = data.offerIdx;
+    _pendingTradeRequest = data.requestIdx;
+    _trade = {offerIdx: data.offerIdx, requestIdx: data.requestIdx};
+    showIncomingTradeModal();
+    return;
+  }
+}
+
+function publishState(){
+  if(MODE!=='online') return;
+  const data = {type:'game-state', state: JSON.parse(JSON.stringify(G))};
+  if(IS_HOST){
+    broadcast(data, null);
+  } else {
+    try{ conn.send(data); }catch(e){ console.error('publishState error:',e); }
+  }
+}
+
+function publishMove(pidx, startPos, steps, doubles){
+  if(MODE!=='online') return;
+  const data={type:'animate-move', pidx, startPos, steps, doubles};
+  if(IS_HOST){ broadcast(data, null); }
+  else{ try{ conn.send(data); }catch(e){} }
+}
+
+function publishTradeProposal(fromPidx, toPidx, offerIdx, requestIdx){
+  if(MODE!=='online') return;
+  const payload={type:'trade-proposal', fromPidx, toPidx, offerIdx, requestIdx,
+                 state: JSON.parse(JSON.stringify(G))};
+  if(IS_HOST){ broadcast(payload, null); }
+  else{
+    if(!conn||!conn.open){showToast('Sin conexión');return;}
+    try{ conn.send(payload); }catch(e){ console.error('Trade proposal error:',e); }
+  }
+}
+
+// ═══════════════════════════════════════════
+// WAITING ROOM
+// ═══════════════════════════════════════════
+function renderWaitingPlayers(){
+  const list=document.getElementById('players-list');
+  list.innerHTML='';
+  const max = ROOM_MAX_PLAYERS || 2;
+  for(let i=0;i<max;i++){
+    const p=_waitingPlayers[i];
+    const div=document.createElement('div');
+    div.className='player-slot '+(p?'filled':'empty');
+    if(p){
+      div.innerHTML=`
+        <div class="slot-avatar" style="background:${P_COLORS[i]}">${p.name.substring(0,2).toUpperCase()}</div>
+        <div><div class="slot-name">${p.name}${i===0?' 👑':''}</div>
+        <div class="slot-tag">Jugador ${i+1}${i===MY_PLAYER_ID?' (tú)':i===0&&IS_HOST?' (tú)':''}</div></div>
+        <div class="slot-token">${p.token}</div>`;
+    } else {
+      div.innerHTML=`<div class="slot-avatar" style="background:#3d2f1a">${i+1}</div>
+        <div><div class="slot-name" style="color:#555">Esperando...</div><div class="slot-tag">Lugar libre</div></div>`;
+    }
+    list.appendChild(div);
+  }
+}
+
+function checkHostCanStart(){
+  if(!IS_HOST) return;
+  const btn=document.getElementById('start-online-btn');
+  const connected=_waitingPlayers.length;
+  // Puede iniciar con 2 o 3 (si ya hay al menos 2)
+  if(connected >= 2){
+    btn.style.display='block';
+    document.getElementById('waiting-status').textContent=
+      connected===ROOM_MAX_PLAYERS ? '¡Todos listos!' :
+      `${connected}/${ROOM_MAX_PLAYERS} jugadores — podés iniciar ya o esperar`;
+  } else {
+    btn.style.display='none';
+    document.getElementById('waiting-status').textContent='Esperando jugadores...';
+  }
+}
+
+function setConnStatus(state, label){
+  const dot=document.getElementById('conn-dot');
+  const lbl=document.getElementById('conn-label');
+  dot.className='conn-dot';
+  if(state==='ok')dot.classList.add('ok');
+  else if(state==='waiting')dot.classList.add('waiting');
+  if(lbl)lbl.textContent=label;
+}
+
+function hostStartGame(){
+  if(_waitingPlayers.length < 2){showToast('Necesitás al menos 2 jugadores');return;}
+  const players = _waitingPlayers.map((p,i)=>({name:p.name, token:p.token}));
+  const state = buildInitialState(players);
+  // Enviar a cada guest su ID y el estado inicial
+  conns.forEach((c,idx)=>{
+    const pid = idx+1; // host es 0, guests son 1,2
+    if(c && c.open){
+      try{ c.send({type:'game-start', state, pid}); }catch(e){}
+    }
+  });
+  MY_PLAYER_ID = 0;
+  startOnlineGame(state);
+}
+
+function leaveRoom(){
+  destroyPeer();
+  _waitingPlayers=[];
+  goScreen('online-lobby');
+}
+
+// ═══════════════════════════════════════════
+// APPLY REMOTE STATE
+// ═══════════════════════════════════════════
+function applyRemoteState(state){
+  G=state;
+  renderBoard(); updateHUD(); rebuildLog();
+  setPhase(G.phase);
+  updateOnlinePanel();
+}
+
+function updateOnlinePanel(){
+  if(MODE!=='online')return;
+  const isMyTurn=G.current===MY_PLAYER_ID;
+  const banner=document.getElementById('waiting-turn-banner');
+  const controls=document.getElementById('online-controls');
+  if(banner)banner.style.display=isMyTurn?'none':'block';
+  if(controls)controls.style.opacity=isMyTurn?'1':'0.5';
+  const wn=document.getElementById('waiting-name');
+  if(wn)wn.textContent=G.players[G.current]?.name||'';
+}
+
+// ═══════════════════════════════════════════
+// BUILD INITIAL STATE
+// ═══════════════════════════════════════════
+function buildInitialState(players){
+  return {
+    players:players.map((p,i)=>({
+      id:i,name:p.name,token:p.token,
+      money:1500,pos:0,jail:false,jailTurns:0,
+      jailCard:false,props:[],bankrupt:false
+    })),
+    current:0,phase:'pre-roll',dice:[0,0],doublesCount:0,
+    props:SQUARES.map(()=>({owner:null,houses:0,mortgaged:false})),
+    chanceDeck:shuffle([...CHANCE_CARDS]),
+    communityDeck:shuffle([...COMMUNITY_CARDS]),
+    chanceIdx:0,communityIdx:0,logEntries:[],
+  };
+}
+
+function initState(p1n,p1t,p2n,p2t){
+  G=buildInitialState([{name:p1n,token:p1t},{name:p2n,token:p2t}]);
+}
+
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+
+// ═══════════════════════════════════════════
+// START GAMES
+// ═══════════════════════════════════════════
+function isDesktop(){return window.innerWidth>=768&&window.innerWidth>window.innerHeight;}
+
+function applyDesktopLayout(panels){
+  if(!isDesktop()) return;
+  const rightPanel=document.getElementById('right-panel');
+  rightPanel.style.display='flex';
+  rightPanel.innerHTML='';
+  // Log en el panel lateral
+  const logWrap=document.getElementById('log-wrap');
+  rightPanel.appendChild(logWrap);
+  // Panels en el panel lateral
+  panels.forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) rightPanel.appendChild(el);
+  });
+}
+
+function startOfflineGame(){
+  const p1n=document.getElementById('p1-name').value.trim()||'Jugador 1';
+  const p2n=document.getElementById('p2-name').value.trim()||'Jugador 2';
+  if(p1Token===p2Token){alert('¡Elige tokens diferentes!');return;}
+  MODE='offline'; MY_PLAYER_ID=null;
+  initState(p1n,p1Token,p2n,p2Token);
+  goScreen('game-screen');
+  buildBoard(); buildPlayerBarStrip(); renderBoard(); updateHUD();
+  setTimeout(()=>applyDesktopLayout(['panel-p2','panel-p1']),50);
+  setTimeout(()=>startOrderRolling(),80);
+}
+
+function startOnlineGame(state){
+  MODE='online';
+  G=state;
+  goScreen('game-screen');
+  document.documentElement.style.setProperty('--board-offset','140px');
+  buildBoard(); buildPlayerBarStrip(); renderBoard(); updateHUD();
+  document.getElementById('panel-online').classList.remove('hidden');
+  document.getElementById('panel-p1').classList.add('hidden');
+  document.getElementById('panel-p2').classList.add('hidden');
+  updateOnlinePanel();
+  setTimeout(()=>applyDesktopLayout(['panel-online']),50);
+  setTimeout(()=>startOrderRolling(),80);
+}
+
+// ═══════════════════════════════════════════
+// PLAYER BAR STRIP (horizontal, arriba)
+// ═══════════════════════════════════════════
+function buildPlayerBarStrip(){
+  const strip=document.getElementById('player-bar-strip');
+  strip.innerHTML='';
+  G.players.forEach((p,i)=>{
+    const chip=document.createElement('div');
+    chip.className='player-chip'; chip.id='chip-p'+i;
+    chip.innerHTML=`
+      <div class="p-avatar-sm" style="background:${P_COLORS[i]}">${p.name.substring(0,2).toUpperCase()}</div>
+      <div style="flex:1;min-width:0;">
+        <div class="chip-name" id="chip-name-p${i}">${p.name}</div>
+        <div class="chip-money" id="chip-money-p${i}">S/1500</div>
+      </div>
+      <div class="chip-token">${p.token}</div>
+      <div class="turn-dot" id="chip-dot-p${i}"></div>`;
+    strip.appendChild(chip);
+  });
+  // Chat button al final
+  if(MODE==='online'){
+    const wrap=document.createElement('div');
+    wrap.id='chat-btn-wrap';
+    wrap.innerHTML=`<button id="chat-toggle-btn" onclick="toggleChat()">💬</button><div id="chat-notif">!</div>`;
+    strip.appendChild(wrap);
+  }
+}
+
+// ═══════════════════════════════════════════
+// BOARD
+// ═══════════════════════════════════════════
+function getGridPos(i){
+  if(i===0)return[10,10];if(i>=1&&i<=9)return[10,10-i];
+  if(i===10)return[10,0];if(i>=11&&i<=19)return[10-(i-10),0];
+  if(i===20)return[0,0];if(i>=21&&i<=29)return[0,i-20];
+  if(i===30)return[0,10];if(i>=31&&i<=39)return[i-30,10];
+  return[0,0];
+}
+
+function buildBoard(){
+  const board=document.getElementById('board');board.innerHTML='';
+  const cells=Array.from({length:11},()=>Array(11).fill(null));
+  SQUARES.forEach(sq=>{
+    const[r,c]=getGridPos(sq.i);
+    const div=document.createElement('div');
+    div.className='cell';div.id='cell-'+sq.i;div.onclick=()=>cellClick(sq.i);
+    const isBottom=r===10,isTop=r===0,isLeft=c===0,isRight=c===10;
+    const isCorner=(isBottom||isTop)&&(isLeft||isRight);
+    if(isCorner)div.classList.add('corner');
+    if(isBottom&&!isCorner)div.classList.add('bottom');
+    if(isLeft&&!isCorner)div.classList.add('left-col');
+    if(isRight&&!isCorner)div.classList.add('right-col');
+    if(sq.type==='prop'){const b=document.createElement('div');b.className='color-band';b.style.background=sq.color;div.appendChild(b);}
+    const cnt=document.createElement('div');
+    cnt.style.cssText='display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2px;width:100%;height:100%;position:relative;';
+    if(isCorner){
+      const lbl=document.createElement('div');lbl.className='corner-label';
+      lbl.textContent={0:'SALIDA',10:'CÁRCEL',20:'LIBRE',30:'IR CÁRCEL'}[sq.i]||sq.name;
+      cnt.appendChild(lbl);
+    } else {
+      if(sq.type!=='prop'){const ic=document.createElement('div');ic.className='cell-icon';ic.textContent=sq.icon||'';cnt.appendChild(ic);}
+      const nm=document.createElement('div');nm.className='cell-name';nm.textContent=sq.name;cnt.appendChild(nm);
+      if(sq.type==='prop'||sq.type==='railroad'||sq.type==='utility'){
+        const pr=document.createElement('div');pr.className='cell-price';pr.id='price-'+sq.i;pr.textContent='S/'+sq.price;cnt.appendChild(pr);
+      }
+    }
+    const hd=document.createElement('div');hd.className='houses-display';hd.id='houses-'+sq.i;cnt.appendChild(hd);
+    const bt=document.createElement('div');bt.className='board-tokens';bt.id='tokens-'+sq.i;cnt.appendChild(bt);
+    div.appendChild(cnt);cells[r][c]=div;
+  });
+  for(let r=0;r<11;r++)for(let c=0;c<11;c++){
+    if(!cells[r][c]&&r>=1&&r<=9&&c>=1&&c<=9){
+      if(r===5&&c===5){
+        const ctr=document.createElement('div');
+        ctr.style.cssText='grid-column:2/11;grid-row:2/11;background:#1a1209;display:flex;align-items:center;justify-content:center;';
+        ctr.innerHTML='<div style="font-family:Oswald,sans-serif;font-size:clamp(14px,4.5vw,32px);font-weight:700;letter-spacing:4px;background:linear-gradient(135deg,#d4a017,#f0c040);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;transform:rotate(-45deg);">MONOPOLIO</div>';
+        board.appendChild(ctr);
+        for(let rr=1;rr<=9;rr++)for(let cc=1;cc<=9;cc++)cells[rr][cc]='center';
+        break;
+      }
+      cells[r][c]='center';
+    }
+  }
+  for(let r=0;r<11;r++)for(let c=0;c<11;c++){
+    const el=cells[r][c];
+    if(el&&el!=='center')board.appendChild(el);
+    else if(!el)board.appendChild(document.createElement('div'));
+  }
+}
+
+function renderBoard(){
+  document.querySelectorAll('.board-tokens').forEach(el=>el.innerHTML='');
+  document.querySelectorAll('.houses-display').forEach(el=>el.innerHTML='');
+  G.players.forEach(p=>{
+    if(p.bankrupt)return;
+    const el=document.getElementById('tokens-'+p.pos);
+    if(el){
+      const t=document.createElement('div');
+      t.className='board-token';
+      t.style.background=P_COLORS[p.id];
+      t.textContent=p.name[0].toUpperCase();
+      el.appendChild(t);
+    }
+  });
+  SQUARES.forEach(sq=>{
+    if(sq.type==='prop'){
+      const pd=G.props[sq.i];const hd=document.getElementById('houses-'+sq.i);
+      if(hd&&pd.houses>0){
+        if(pd.houses===5){const d=document.createElement('div');d.className='house-dot hotel';hd.appendChild(d);}
+        else for(let h=0;h<pd.houses;h++){const d=document.createElement('div');d.className='house-dot';hd.appendChild(d);}
+      }
+    }
+    const pd=G.props[sq.i];const prEl=document.getElementById('price-'+sq.i);
+    if(prEl){
+      if(pd&&pd.owner!==null&&pd.owner>=0){prEl.innerHTML=`<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${P_COLORS[pd.owner]};vertical-align:middle;${pd.mortgaged?'opacity:0.4':''}"></span>`;}
+      else if(sq.price)prEl.textContent='S/'+sq.price;
+    }
+  });
+}
+
+// ═══════════════════════════════════════════
+// GLOW
+// ═══════════════════════════════════════════
+function stepGlowCell(idx){const el=document.getElementById('cell-'+idx);if(!el)return;el.classList.remove('stepping','landing');void el.offsetWidth;el.classList.add('stepping');setTimeout(()=>el.classList.remove('stepping'),380);}
+function glowCell(idx){const el=document.getElementById('cell-'+idx);if(!el)return;el.classList.remove('landing','stepping');void el.offsetWidth;el.classList.add('landing');setTimeout(()=>el.classList.remove('landing'),1100);}
+
+// ═══════════════════════════════════════════
+// HUD — usando el strip horizontal
+// ═══════════════════════════════════════════
+function updateHUD(){
+  G.players.forEach((p,i)=>{
+    const nameEl=document.getElementById('chip-name-p'+i);
+    const moneyEl=document.getElementById('chip-money-p'+i);
+    const dotEl=document.getElementById('chip-dot-p'+i);
+    const chipEl=document.getElementById('chip-p'+i);
+    if(nameEl)nameEl.textContent=p.name+(p.bankrupt?' 💀':p.jail?' ⛓️':'');
+    if(moneyEl)moneyEl.textContent='S/'+p.money;
+    if(dotEl)dotEl.className='turn-dot'+(i===G.current?' active':'');
+    if(chipEl)chipEl.className='player-chip'+(i===G.current?' active-turn':'');
+  });
+  const cur=G.current;
+  if(MODE==='offline'){
+    ['p1','p2'].forEach(sfx=>{
+      const el=document.getElementById('panel-title-'+sfx);
+      if(el)el.textContent='TURNO DE '+G.players[cur].name.toUpperCase();
+    });
+    document.getElementById('panel-p1').classList.toggle('hidden',cur!==0);
+    document.getElementById('panel-p2').classList.toggle('hidden',cur!==1);
+  } else {
+    const el=document.getElementById('panel-title-online');
+    if(el)el.textContent='TURNO DE '+G.players[cur].name.toUpperCase();
+    updateOnlinePanel();
+  }
+}
+
+// ═══════════════════════════════════════════
+// LOG
+// ═══════════════════════════════════════════
+function addLog(msg,forPlayer){
+  const who=forPlayer!==undefined?forPlayer:G.current;
+  G.logEntries=G.logEntries||[];
+  G.logEntries.push({msg,who});
+  if(G.logEntries.length>40)G.logEntries.shift();
+  rebuildLog();
+}
+function rebuildLog(){
+  const logEl=document.getElementById('log');logEl.innerHTML='';
+  const recent=[...G.logEntries].slice(-20).reverse();
+  recent.forEach(entry=>{
+    const p=document.createElement('p');p.className='log-entry';
+    const dot=document.createElement('span');dot.className='log-tag';dot.textContent='● ';dot.style.color=P_COLORS[entry.who]||P_COLORS[0];
+    p.appendChild(dot);p.appendChild(document.createTextNode(entry.msg));
+    logEl.appendChild(p);
+  });
+}
+
+// ═══════════════════════════════════════════
+// PHASE — FIX CLAVE PARA ONLINE
+// ═══════════════════════════════════════════
+function getActiveSuffix(){
+  if(MODE==='online')return '-online';
+  return G.current===0?'-p1':'-p2';
+}
+
+function setPhase(phase){
+  G.phase=phase;
+  const cur=G.players[G.current];
+  const sfx=getActiveSuffix();
+  const allBtns=['btn-roll','btn-buy','btn-skip-buy','btn-build','btn-mortgage','btn-jail-pay',
+   'btn-jail-roll','btn-end-turn','btn-props','btn-mortgage-buy','btn-auction','btn-trade'];
+  ['-p1','-p2','-online'].forEach(s=>allBtns.forEach(id=>hide(id+s)));
+  ['extra-btns-p1','extra-btns-p2','extra-btns-online'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+
+  // En modo online: si NO es mi turno, sólo mostrar el banner de espera
+  if(MODE==='online' && G.current!==MY_PLAYER_ID){
+    updateOnlinePanel();
+    return;
+  }
+
+  const extraId='extra-btns'+sfx;
+  if(phase==='pre-roll'){
+    show('btn-roll'+sfx);show('btn-props'+sfx);show('btn-build'+sfx);show('btn-mortgage'+sfx);show('btn-trade'+sfx);
+    document.getElementById(extraId).style.display='flex';
+    if(cur.jail){hide('btn-roll'+sfx);show('btn-jail-pay'+sfx);show('btn-jail-roll'+sfx);}
+  }
+  if(phase==='buying'){show('btn-buy'+sfx);show('btn-skip-buy'+sfx);show('btn-props'+sfx);document.getElementById(extraId).style.display='flex';}
+  if(phase==='buying-broke'){show('btn-mortgage-buy'+sfx);show('btn-auction'+sfx);show('btn-skip-buy'+sfx);show('btn-props'+sfx);document.getElementById(extraId).style.display='flex';}
+  if(phase==='end-turn'){show('btn-end-turn'+sfx);show('btn-props'+sfx);show('btn-build'+sfx);show('btn-mortgage'+sfx);show('btn-trade'+sfx);document.getElementById(extraId).style.display='flex';}
+  if(MODE==='online')updateOnlinePanel();
+}
+function show(id){const el=document.getElementById(id);if(el){el.style.display='inline-flex';el.disabled=false;}}
+function hide(id){const el=document.getElementById(id);if(el)el.style.display='none';}
+
+function isMyAction(){
+  if(MODE==='offline')return true;
+  return G.current===MY_PLAYER_ID;
+}
+
+// ═══════════════════════════════════════════
+// DICE
+// ═══════════════════════════════════════════
+function rollDice(){
+  if(!isMyAction()){showToast('No es tu turno');return;}
+  const cur=G.players[G.current];if(cur.bankrupt){endTurn();return;}
+  const sfx=getActiveSuffix();
+  const d1=Math.ceil(Math.random()*6),d2=Math.ceil(Math.random()*6);
+  G.dice=[d1,d2];const isDoubles=d1===d2;
+  ['die1'+sfx,'die2'+sfx].forEach(id=>{const el=document.getElementById(id);if(el){el.classList.remove('rolling');void el.offsetWidth;el.classList.add('rolling');}});
+  setTimeout(()=>{
+    const d1el=document.getElementById('die1'+sfx);const d2el=document.getElementById('die2'+sfx);
+    // Mostrar puntos con color negro sobre fondo blanco
+    if(d1el){d1el.textContent=DICE_FACES[d1-1];d1el.style.color='#1a1209';}
+    if(d2el){d2el.textContent=DICE_FACES[d2-1];d2el.style.color='#1a1209';}
+    const sumEl=document.getElementById('dice-sum'+sfx);const infoEl=document.getElementById('dice-info'+sfx);
+    if(sumEl)sumEl.textContent=d1+d2;if(infoEl)infoEl.textContent=isDoubles?'¡DOBLES!':'';
+    const btnRoll=document.getElementById('btn-roll'+sfx);if(btnRoll)btnRoll.disabled=true;
+  },350);
+  if(isDoubles){G.doublesCount++;if(G.doublesCount>=3){
+    setTimeout(()=>{addLog(cur.name+' tiró 3 dobles. ¡A la cárcel!');sendToJail(G.current);setPhase('end-turn');renderBoard();updateHUD();publishState();},420);return;
+  }}else G.doublesCount=0;
+  addLog(`${cur.name} tiró ${d1}+${d2}=${d1+d2}${isDoubles?' (¡Dobles!)':''}`);
+  setTimeout(()=>movePlayerAnimated(G.current,d1+d2,isDoubles),420);
+}
+
+// ═══════════════════════════════════════════
+// MOVIMIENTO
+// ═══════════════════════════════════════════
+function movePlayerAnimated(pidx,steps,doubles,isRemoteReplay){
+  // Si somos el que mueve en online, avisamos al otro para que anime también
+  if(MODE==='online' && !isRemoteReplay){
+    publishMove(pidx, G.players[pidx].pos, steps, doubles);
+  }
+  const p=G.players[pidx];const startPos=p.pos;let step=0;
+  const STEP_DELAY=280;
+  function doStep(){
+    step++;
+    const newPos=(startPos+step)%40;
+    if(step<steps&&newPos===0){p.money+=200;addLog(p.name+' pasó por SALIDA. Cobra S/200!');updateHUD();}
+    if(step===steps&&newPos===0&&startPos!==0){p.money+=200;addLog(p.name+' cayó en SALIDA. Cobra S/200!');updateHUD();}
+    p.pos=newPos;
+    if(step<steps){stepGlowCell(p.pos);renderBoard();setTimeout(doStep,STEP_DELAY);}
+    else{
+      renderBoard();updateHUD();glowCell(p.pos);
+      // Si es replay remoto, solo animamos — no ejecutamos landOn (el estado llegará después)
+      if(!isRemoteReplay) setTimeout(()=>landOn(pidx,doubles),600);
+    }
+  }
+  doStep();
+}
+
+// ═══════════════════════════════════════════
+// LANDING
+// ═══════════════════════════════════════════
+function landOn(pidx,doubles){
+  const p=G.players[pidx];const sq=SQUARES[p.pos];const pd=G.props[p.pos];
+  addLog(`${p.name} cayó en: ${sq.name}`);
+  if(sq.type==='go'){p.money+=200;addLog(p.name+' está en SALIDA. Cobra S/200!');updateHUD();afterLand(pidx,doubles);}
+  else if(sq.type==='go-to-jail'){sendToJail(pidx);setPhase('end-turn');renderBoard();updateHUD();publishState();}
+  else if(sq.type==='jail'){addLog(p.name+' está de visita.');afterLand(pidx,doubles);}
+  else if(sq.type==='free'){addLog('Estación libre. Sin consecuencias.');afterLand(pidx,doubles);}
+  else if(sq.type==='tax'){
+    if(p.money>=sq.amount){p.money-=sq.amount;addLog(`${p.name} pagó S/${sq.amount} de impuesto.`);updateHUD();afterLand(pidx,doubles);}
+    else{
+      const totalAvail=calcTotalLiquidValue(pidx);
+      if(totalAvail>=sq.amount){
+        _pendingRentOwner=null;_pendingRentAmount=sq.amount;_pendingRentDoubles=doubles;
+        showRentBrokeModal(pidx,sq,sq.amount,null,doubles,true);
+      } else {
+        addLog(`${p.name} no puede pagar impuesto. ¡Bancarrota!`);declareBankruptcy(pidx);
+      }
+    }
+  }
+  else if(sq.type==='chance')drawCard(pidx,'chance',doubles);
+  else if(sq.type==='community')drawCard(pidx,'community',doubles);
+  else if(sq.type==='prop'||sq.type==='railroad'||sq.type==='utility'){
+    const isUnowned = pd.owner===null || pd.owner===-1;
+    if(isUnowned&&!pd.mortgaged){
+      if(p.money>=sq.price){setPhase('buying');showBuyModal(pidx,sq,doubles);}
+      else{_pendingBuySquare=sq.i;_pendingBuyDoubles=doubles;addLog(`${p.name} no tiene fondos para ${sq.name}.`);setPhase('buying-broke');showBuyBrokeModal(pidx,sq,doubles);}
+    } else if(!isUnowned&&pd.owner!==pidx&&!pd.mortgaged){
+      const rent=calcRent(p.pos,pidx);
+      if(p.money>=rent){
+        addLog(`${p.name} paga S/${rent} de renta a ${G.players[pd.owner].name}`);
+        transferMoney(pidx,pd.owner,rent);afterLand(pidx,doubles);
+      } else {
+        _pendingRentOwner=pd.owner;_pendingRentAmount=rent;_pendingRentDoubles=doubles;
+        showRentBrokeModal(pidx,sq,rent,pd.owner,doubles);
+      }
+    } else afterLand(pidx,doubles);
+  }
+}
+
+function afterLand(pidx,doubles){
+  if(doubles&&G.doublesCount>0){
+    addLog('¡Dobles! '+G.players[pidx].name+' tira de nuevo.');setPhase('pre-roll');
+  } else {setPhase('end-turn');}
+  publishState();
+}
+
+function sendToJail(pidx){
+  const p=G.players[pidx];p.pos=10;p.jail=true;p.jailTurns=0;G.doublesCount=0;
+  addLog(p.name+' va a la cárcel!');glowCell(10);renderBoard();
+}
+
+function calcRent(sqIdx,payerIdx){
+  const sq=SQUARES[sqIdx];const pd=G.props[sqIdx];const owner=pd.owner;
+  if(sq.type==='railroad'){const rc=SQUARES.filter(s=>s.type==='railroad'&&G.props[s.i].owner===owner).length;return[25,50,100,200][rc-1];}
+  if(sq.type==='utility'){const uc=SQUARES.filter(s=>s.type==='utility'&&G.props[s.i].owner===owner).length;return(G.dice[0]+G.dice[1])*(uc===2?10:4);}
+  if(pd.houses>0)return sq.rent[pd.houses];
+  const grp=SQUARES.filter(s=>s.type==='prop'&&s.group===sq.group);
+  return grp.every(s=>G.props[s.i].owner===owner)?sq.rent[0]*2:sq.rent[0];
+}
+
+// ═══════════════════════════════════════════
+// CHARGE / TRANSFER
+// ═══════════════════════════════════════════
+function chargePlayer(pidx,amount,reason){
+  const p=G.players[pidx];
+  if(p.money>=amount){p.money-=amount;addLog(`${p.name} pagó S/${amount} (${reason})`);updateHUD();}
+  else{
+    // ¿Puede reunir el dinero hipotecando o vendiendo casas?
+    const totalAvail=calcTotalLiquidValue(pidx);
+    if(totalAvail>=amount){
+      // Guardar como deuda pendiente de impuesto/carta
+      _pendingRentOwner=null;_pendingRentAmount=amount;_pendingRentDoubles=_pendingCardDoubles||false;
+      showRentBrokeModal(pidx,{name:reason},amount,null,_pendingCardDoubles||false,true);
+    } else {
+      addLog(`${p.name} no puede pagar S/${amount}.`);declareBankruptcy(pidx);
+    }
+  }
+}
+
+function transferMoney(fromIdx,toIdx,amount){
+  const from=G.players[fromIdx],to=G.players[toIdx];
+  if(from.money>=amount){from.money-=amount;to.money+=amount;}
+  else{
+    addLog(`${from.name} no puede pagar. ¡Bancarrota!`);
+    to.money+=from.money; // el dinero restante va al acreedor
+    from.money=0;
+    declareBankruptcy(fromIdx); // propiedades van al banco en declareBankruptcy
+  }
+  updateHUD();
+}
+
+function calcTotalLiquidValue(pidx){
+  const p=G.players[pidx];
+  return p.money+p.props.reduce((s,i)=>{
+    const sq=SQUARES[i],pd=G.props[i];
+    let val=0;
+    if(!pd.mortgaged&&pd.houses===0) val+=(sq.mortgage||Math.floor((sq.price||150)/2));
+    if(pd.houses>0&&pd.houses<5) val+=pd.houses*Math.floor(sq.house/2);
+    if(pd.houses===5) val+=Math.floor(sq.house/2); // vender hotel = 1 hotel val
+    return s+val;
+  },0);
+}
+
+function declareBankruptcy(pidx){
+  const p=G.players[pidx];
+  p.bankrupt=true;
+  // Liberar propiedades al banco (owner=-1, sin casas, sin hipoteca)
+  G.props.forEach((pd,i)=>{
+    if(pd.owner===pidx){
+      pd.owner=-1;
+      pd.houses=0;
+      pd.mortgaged=false;
+    }
+  });
+  p.props=[];
+  addLog('💀 '+p.name+' está en bancarrota! Sus propiedades vuelven al banco.');
+  updateHUD();renderBoard();
+  // Mostrar modal de derrota al jugador eliminado
+  showBankruptModal(pidx);
+}
+
+function showBankruptModal(pidx){
+  const p=G.players[pidx];
+  const activePlayers=G.players.filter(pl=>!pl.bankrupt);
+  if(activePlayers.length===1){
+    // Último sobreviviente: mostrar ganador
+    showWin(activePlayers[0]);
+    return;
+  }
+  // Modal de "perdiste" para el jugador eliminado
+  openModal('💀 ¡BANCARROTA!',p.name,
+    `<div style="text-align:center;padding:12px 0;">
+      <div style="font-size:48px;margin-bottom:12px;">${p.token}</div>
+      <div style="font-size:14px;color:#f5a0a0;line-height:1.6;">Te quedaste sin dinero ni propiedades.<br>¡Mejor suerte la próxima vez!</div>
+    </div>`,
+    [
+      {label:'👀 Observar partida',cls:'btn-dark',fn:`bankruptObserve(${pidx})`},
+      {label:'🚪 Salir',cls:'btn-danger',fn:'confirmExit()'}
+    ],pidx
+  );
+}
+
+function bankruptObserve(pidx){
+  closeModal();
+  addLog('👀 '+G.players[pidx].name+' está observando la partida.');
+}
+
+function checkWin(){const a=G.players.filter(p=>!p.bankrupt);if(a.length===1)showWin(a[0]);}
+
+// ═══════════════════════════════════════════
+// RENTA SIN FONDOS
+// ═══════════════════════════════════════════
+let _pendingRentOwner=null,_pendingRentAmount=0,_pendingRentDoubles=false;
+
+function showRentBrokeModal(pidx,sq,rent,ownerIdx,doubles,isTax){
+  const p=G.players[pidx];const owner=ownerIdx!==null?G.players[ownerIdx]:null;
+  const totalAvail=calcTotalLiquidValue(pidx)+getSellableHouses(pidx).reduce((s,i)=>s+Math.floor(SQUARES[i].house/2),0)+getSellableHotels(pidx).reduce((s,i)=>s+Math.floor(SQUARES[i].house/2),0);
+  const canAfford=totalAvail>=rent;const canPayNow=p.money>=rent;
+  const mortgageable=p.props.filter(i=>!G.props[i].mortgaged&&G.props[i].houses===0);
+  const sellableH=getSellableHouses(pidx);
+  const sellableHotel=getSellableHotels(pidx);
+  let html=`<div class="prop-detail">
+    <div class="prop-row"><span>${owner?'Renta debida a '+owner.name:'Monto a pagar'}</span><span style="color:#e63946">S/${rent}</span></div>
+    <div class="prop-row"><span>Tu dinero</span><span style="color:#e63946">S/${p.money}</span></div>
+    <div class="prop-row"><span>Te faltan</span><span style="color:#e63946">S/${Math.max(0,rent-p.money)}</span></div>
+  </div>`;
+  if(canPayNow){html+=`<div style="background:#1a3a1a;border-radius:8px;padding:10px;margin-bottom:12px;font-size:12px;color:#90ee90;">✅ Ya tienes suficiente.</div>`;}
+  else if(canAfford){
+    html+=`<div style="background:#2d1a00;border-radius:8px;padding:10px;margin-bottom:12px;font-size:12px;">Hipoteca propiedades o vende casas para reunir S/${rent}.</div>`;
+    if(mortgageable.length){
+      html+=`<div style="font-size:11px;color:#f0c040;margin-bottom:4px;margin-top:8px;">🏦 Hipotecar:</div><div class="prop-list">`;
+      mortgageable.forEach(sqIdx=>{const s=SQUARES[sqIdx],val=s.mortgage||Math.floor((s.price||150)/2);
+        const badge=s.type==='prop'?`<span class="color-chip" style="background:${s.color};width:14px;height:14px;border-radius:3px;display:inline-block;vertical-align:middle;margin-right:4px;"></span>`:(s.icon?`<span style="margin-right:4px;">${s.icon}</span>`:'');
+        html+=`<div class="prop-item"><div><div class="prop-item-name">${badge}${s.name}</div><div class="prop-item-detail">Cobra S/${val}</div></div>
+        <button class="btn btn-danger" style="font-size:11px;padding:6px 10px;flex:0" onclick="${isTax?'mortgagePropForRent':'mortgagePropForRent'}(${sqIdx})">Hipotecar</button></div>`;});
+      html+='</div>';
+    }
+    if(sellableH.length||sellableHotel.length){
+      html+=`<div style="font-size:11px;color:#f0c040;margin-bottom:4px;margin-top:8px;">🏠 Vender casas:</div><div class="prop-list">`;
+      [...sellableH,...sellableHotel].forEach(sqIdx=>{const s=SQUARES[sqIdx],pd=G.props[sqIdx];
+        const val=Math.floor(s.house/2);
+        html+=`<div class="prop-item"><div><div class="prop-item-name"><span class="color-chip" style="background:${s.color};width:14px;height:14px;border-radius:3px;display:inline-block;vertical-align:middle;margin-right:4px;"></span>${s.name} (${pd.houses===5?'Hotel':pd.houses+' casas'})</div><div class="prop-item-detail">Vender 1 → Cobra S/${val}</div></div>
+        <button class="btn btn-orange" style="font-size:11px;padding:6px 10px;flex:0" onclick="sellHouseForRent(${sqIdx})">Vender</button></div>`;});
+      html+='</div>';
+    }
+  } else {
+    html+=`<div style="background:#5c1a1a;border-radius:8px;padding:12px;margin-bottom:12px;font-size:13px;color:#f5a0a0;">❌ No puedes reunir S/${rent}. Bancarrota.</div>`;
+  }
+  let modalBtns=[];
+  if(canPayNow)modalBtns=[{label:`💰 Pagar S/${rent}`,cls:'btn-primary',fn:`payRentNow(${!!isTax})`}];
+  else if(canAfford)modalBtns=[{label:`💰 Pagar S/${rent}`,cls:'btn-dark',fn:'notEnoughYet()'}];
+  else modalBtns=[{label:'💀 Declarar bancarrota',cls:'btn-danger',fn:'forceRentBankruptcy()'}];
+  openModal('⚠️ Sin fondos para pagar',sq.name||'',html,modalBtns,pidx);
+}
+
+function notEnoughYet(){const pidx=G.current;if(G.players[pidx].money>=_pendingRentAmount){payRentNow(_pendingRentOwner===null);}else{addLog('Aún te faltan S/'+(_pendingRentAmount-G.players[pidx].money)+'. Sigue hipotecando o vende casas.');}}
+
+function mortgagePropForRent(sqIdx){
+  const pidx=G.current,p=G.players[pidx],sq=SQUARES[sqIdx],pd=G.props[sqIdx];
+  if(pd.houses>0){addLog('Vende las casas primero.');return;}
+  const val=sq.mortgage||Math.floor((sq.price||150)/2);
+  pd.mortgaged=true;p.money+=val;addLog(`${p.name} hipotecó ${sq.name}. Cobra S/${val}.`);
+  updateHUD();renderBoard();
+  showRentBrokeModal(pidx,SQUARES[G.players[pidx].pos],_pendingRentAmount,_pendingRentOwner,_pendingRentDoubles,_pendingRentOwner===null);
+}
+
+function payRentNow(isTax){
+  closeModal();const pidx=G.current;
+  if(isTax||_pendingRentOwner===null){
+    G.players[pidx].money-=_pendingRentAmount;
+    addLog(`${G.players[pidx].name} pagó S/${_pendingRentAmount}`);
+    updateHUD();afterLand(pidx,_pendingRentDoubles);
+  } else {
+    addLog(`${G.players[pidx].name} paga S/${_pendingRentAmount} de renta a ${G.players[_pendingRentOwner].name}`);
+    transferMoney(pidx,_pendingRentOwner,_pendingRentAmount);
+    updateHUD();afterLand(pidx,_pendingRentDoubles);
+  }
+}
+
+function forceRentBankruptcy(){
+  closeModal();const pidx=G.current,ownerIdx=_pendingRentOwner;
+  const p=G.players[pidx];
+  // El dinero restante va al acreedor (si hay), las propiedades van al banco
+  if(ownerIdx!==null && ownerIdx>=0 && G.players[ownerIdx]){
+    G.players[ownerIdx].money+=p.money;
+    addLog(`${p.name} entrega S/${p.money} a ${G.players[ownerIdx].name}.`);
+  }
+  p.money=0;
+  declareBankruptcy(pidx);publishState();
+}
+
+// ═══════════════════════════════════════════
+// CARTAS
+// ═══════════════════════════════════════════
+let _pendingCard=null,_pendingCardPidx=0,_pendingCardDoubles=false;
+
+function drawCard(pidx,deck,doubles){
+  const cards=deck==='chance'?G.chanceDeck:G.communityDeck;
+  const idx=deck==='chance'?G.chanceIdx:G.communityIdx;
+  const card=cards[idx%cards.length];
+  if(deck==='chance')G.chanceIdx++;else G.communityIdx++;
+  addLog(`${deck==='chance'?'❓ Azar':'📬 Arca Com.'}: ${card.text}`);
+  _pendingCard=card;_pendingCardPidx=pidx;_pendingCardDoubles=doubles;
+  openModal(deck==='chance'?'❓ AZAR':'📬 ARCA DE COMUNIDAD','',
+    `<div style="background:#12100a;border-radius:12px;padding:18px;text-align:center;margin-bottom:8px;">
+      <div style="font-size:36px;margin-bottom:12px;">${deck==='chance'?'🎴':'📦'}</div>
+      <div style="font-family:Oswald,sans-serif;font-size:17px;color:var(--gold2);line-height:1.6;">${card.text}</div>
+    </div>`,
+    [{label:'✅ Aceptar',cls:'btn-primary',fn:'applyPendingCard()'}],pidx);
+}
+
+function applyPendingCard(){closeModal();const c=_pendingCard,p=_pendingCardPidx,d=_pendingCardDoubles;_pendingCard=null;setTimeout(()=>applyCard(p,c,d),120);}
+
+function applyCard(pidx,card,doubles){
+  const p=G.players[pidx];
+  switch(card.action){
+    case 'collect':p.money+=card.amount;addLog(p.name+' cobra S/'+card.amount);updateHUD();afterLand(pidx,doubles);break;
+    case 'pay':chargePlayer(pidx,card.amount,'Carta');afterLand(pidx,doubles);break;
+    case 'goto':
+      if(card.collect&&p.pos>card.target&&card.target===0)p.money+=200;
+      else if(p.pos>card.target&&card.target!==0)p.money+=200;
+      p.pos=card.target;renderBoard();updateHUD();glowCell(p.pos);setTimeout(()=>landOn(pidx,doubles),420);break;
+    case 'back':p.pos=(p.pos-card.amount+40)%40;renderBoard();updateHUD();glowCell(p.pos);setTimeout(()=>landOn(pidx,doubles),420);break;
+    case 'jail':sendToJail(pidx);setPhase('end-turn');publishState();break;
+    case 'jail-free':p.jailCard=true;addLog(p.name+' tiene tarjeta libre!');afterLand(pidx,doubles);break;
+    case 'nearest-railroad':{const rr=[5,15,25,35];const best=rr.find(r=>r>p.pos)||rr[0];if(p.pos>best)p.money+=200;p.pos=best;renderBoard();updateHUD();glowCell(p.pos);setTimeout(()=>landOn(pidx,doubles),420);}break;
+    case 'nearest-utility':{const uu=[12,28];const best=uu.find(u=>u>p.pos)||uu[0];p.pos=best;renderBoard();updateHUD();glowCell(p.pos);setTimeout(()=>landOn(pidx,doubles),420);}break;
+    case 'repairs':{let t=0;G.players[pidx].props.forEach(pi=>{const pd=G.props[pi];if(pd.houses===5)t+=card.hotel;else t+=pd.houses*card.house;});if(t>0)chargePlayer(pidx,t,'Reparaciones');else addLog('Sin propiedades.');afterLand(pidx,doubles);}break;
+    case 'collect-players':{G.players.filter(pl=>pl.id!==pidx&&!pl.bankrupt).forEach(pl=>transferMoney(pl.id,pidx,card.amount));afterLand(pidx,doubles);}break;
+    default:afterLand(pidx,doubles);
+  }
+}
+
+// ═══════════════════════════════════════════
+// JAIL
+// ═══════════════════════════════════════════
+function rollJail(){
+  if(!isMyAction()){showToast('No es tu turno');return;}
+  const p=G.players[G.current];const sfx=getActiveSuffix();
+  const d1=Math.ceil(Math.random()*6),d2=Math.ceil(Math.random()*6);
+  const d1el=document.getElementById('die1'+sfx);const d2el=document.getElementById('die2'+sfx);
+  if(d1el){d1el.textContent=DICE_FACES[d1-1];d1el.style.color='#1a1209';}
+  if(d2el){d2el.textContent=DICE_FACES[d2-1];d2el.style.color='#1a1209';}
+  const sumEl=document.getElementById('dice-sum'+sfx);if(sumEl)sumEl.textContent=d1+d2;
+  addLog(`${p.name} tiró ${d1}+${d2}=${d1+d2} en cárcel.`);
+  if(d1===d2){p.jail=false;p.jailTurns=0;addLog('¡Dobles! '+p.name+' sale.');G.doublesCount=0;movePlayerAnimated(G.current,d1+d2,false);}
+  else{p.jailTurns++;if(p.jailTurns>=3){addLog(p.name+' lleva 3 turnos. Paga S/50.');p.money-=50;p.jail=false;p.jailTurns=0;movePlayerAnimated(G.current,d1+d2,false);}else{addLog(p.name+' sigue en cárcel ('+p.jailTurns+'/3).');setPhase('end-turn');updateHUD();publishState();}}
+}
+
+function payJailFine(){
+  if(!isMyAction()){showToast('No es tu turno');return;}
+  const p=G.players[G.current];if(p.money<50){addLog('No tienes S/50!');return;}
+  p.money-=50;p.jail=false;p.jailTurns=0;addLog(p.name+' pagó S/50 y sale.');
+  updateHUD();setPhase('pre-roll');publishState();
+}
+
+// ═══════════════════════════════════════════
+// BUYING
+// ═══════════════════════════════════════════
+let _pendingBuySquare=null,_pendingBuyDoubles=false;
+
+function showBuyModal(pidx,sq,doubles){
+  _pendingBuySquare=sq.i;_pendingBuyDoubles=doubles;const p=G.players[pidx];
+  openModal(sq.name,sq.type==='prop'?'Propiedad':sq.type==='railroad'?'Ferroviaria':'Servicio',
+    `<div class="prop-detail">
+      <div class="prop-row"><span>Precio</span><span>S/${sq.price}</span></div>
+      <div class="prop-row"><span>Tu dinero</span><span>S/${p.money}</span></div>
+      ${sq.type==='prop'?`<div class="prop-row"><span>Renta base</span><span>S/${sq.rent[0]}</span></div>
+      <div class="prop-row"><span>Renta monopolio</span><span>S/${sq.rent[0]*2}</span></div>
+      <div class="prop-row"><span>Con 1 casa</span><span>S/${sq.rent[1]}</span></div>
+      <div class="prop-row"><span>Hotel</span><span>S/${sq.rent[5]}</span></div>`:''}
+    </div>`,
+    [{label:'💰 Comprar S/'+sq.price,cls:'btn-primary',fn:'buyProperty()'},
+     {label:'❌ No comprar',cls:'btn-dark',fn:'skipBuy()'}],pidx);
+}
+
+function showBuyBrokeModal(pidx,sq,doubles){
+  const p=G.players[pidx];const mv=calcMortgageableValue(pidx);
+  const canAfford=(p.money+mv)>=sq.price;
+  openModal('⚠️ Sin fondos — ¡Debes actuar!',sq.name+' — S/'+sq.price,
+    `<div class="prop-detail">
+      <div class="prop-row"><span>Precio</span><span>S/${sq.price}</span></div>
+      <div class="prop-row"><span>Tu dinero</span><span style="color:#e63946">S/${p.money}</span></div>
+      <div class="prop-row"><span>Te faltan</span><span style="color:#e63946">S/${sq.price-p.money}</span></div>
+    </div>
+    <div style="background:#2d1a00;border-radius:8px;padding:10px;margin-bottom:4px;font-size:12px;color:#f0c040;">
+      ⚠️ No puedes pasar. Hipoteca para comprar, o subasta (el rival puede quedársela por S/1).
+    </div>`,
+    [...(canAfford?[{label:'🏦 Hipotecar y comprar',cls:'btn-orange',fn:'showMortgageToAfford()'}]:[]),
+     {label:'🔨 Subastar (desde S/1)',cls:'btn-info',fn:'startAuction()'}],pidx);
+  // No hay botón "pasar" — es obligatorio actuar
+}
+
+function calcMortgageableValue(pidx){
+  return G.players[pidx].props.reduce((s,sqIdx)=>{
+    const sq=SQUARES[sqIdx],pd=G.props[sqIdx];
+    return(!pd.mortgaged&&pd.houses===0)?s+(sq.mortgage||Math.floor((sq.price||150)/2)):s;
+  },0);
+}
+
+function buyProperty(){
+  if(!isMyAction()){closeModal();return;}
+  closeModal();const pidx=G.current;const sq=SQUARES[_pendingBuySquare];const p=G.players[pidx];
+  if(p.money<sq.price){addLog('Sin fondos!');return;}
+  p.money-=sq.price;G.props[sq.i].owner=pidx;p.props.push(sq.i);
+  addLog(`${p.name} compró ${sq.name} por S/${sq.price}!`);updateHUD();renderBoard();afterLand(pidx,_pendingBuyDoubles);
+}
+function skipBuy(){closeModal();afterLand(G.current,_pendingBuyDoubles);}
+
+function showMortgageToAfford(){
+  closeModal();const pidx=G.current,p=G.players[pidx],sq=SQUARES[_pendingBuySquare];
+  let html=`<div style="background:#2d1a00;border-radius:8px;padding:10px;margin-bottom:12px;font-size:12px;">Necesitas S/${sq.price-p.money} más para ${sq.name}.</div>`;
+  const m=p.props.filter(i=>!G.props[i].mortgaged&&G.props[i].houses===0);
+  const sellH=getSellableHouses(pidx);
+  const sellHotel=getSellableHotels(pidx);
+  if(m.length){
+    html+=`<div style="font-size:11px;color:#f0c040;margin-bottom:4px;">🏦 Hipotecar:</div><div class="prop-list">`;
+    m.forEach(sqIdx=>{const s=SQUARES[sqIdx],val=s.mortgage||Math.floor((s.price||150)/2);
+      const badge=s.type==='prop'?`<span class="color-chip" style="background:${s.color};width:14px;height:14px;border-radius:3px;display:inline-block;vertical-align:middle;margin-right:4px;"></span>`:(s.icon?`<span style="margin-right:4px;">${s.icon}</span>`:'');
+      html+=`<div class="prop-item"><div><div class="prop-item-name">${badge}${s.name}</div><div class="prop-item-detail">Cobra S/${val}</div></div>
+      <button class="btn btn-danger" style="font-size:11px;padding:6px 10px;flex:0" onclick="mortgagePropForBuy(${sqIdx})">Hipotecar</button></div>`;});
+    html+='</div>';
+  }
+  if(sellH.length||sellHotel.length){
+    html+=`<div style="font-size:11px;color:#f0c040;margin-bottom:4px;margin-top:8px;">🏠 Vender casas:</div><div class="prop-list">`;
+    [...sellH,...sellHotel].forEach(sqIdx=>{const s=SQUARES[sqIdx],pd=G.props[sqIdx];const val=Math.floor(s.house/2);
+      html+=`<div class="prop-item"><div><div class="prop-item-name"><span class="color-chip" style="background:${s.color};width:14px;height:14px;border-radius:3px;display:inline-block;vertical-align:middle;margin-right:4px;"></span>${s.name} (${pd.houses===5?'Hotel':pd.houses+' casas'})</div><div class="prop-item-detail">Vender 1 → Cobra S/${val}</div></div>
+      <button class="btn btn-orange" style="font-size:11px;padding:6px 10px;flex:0" onclick="sellHouseForBuy(${sqIdx})">Vender</button></div>`;});
+    html+='</div>';
+  }
+  if(!m.length&&!sellH.length&&!sellHotel.length){
+    html+='<p style="font-size:12px;color:#555;padding:8px;">Sin propiedades disponibles</p>';
+  }
+  const canBuyNow=p.money>=sq.price;
+  openModal('🏦 Reunir fondos','',html,[
+    ...(canBuyNow?[{label:'💰 Comprar S/'+sq.price,cls:'btn-primary',fn:'buyProperty()'}]:[]),
+    {label:'🔨 Subastar (desde S/1)',cls:'btn-info',fn:'startAuction()'}],pidx);
+}
+
+function mortgagePropForBuy(sqIdx){
+  const pidx=G.current,p=G.players[pidx],sq=SQUARES[sqIdx],pd=G.props[sqIdx];
+  const val=sq.mortgage||Math.floor((sq.price||150)/2);
+  pd.mortgaged=true;p.money+=val;addLog(`${p.name} hipotecó ${sq.name}. Cobra S/${val}.`);
+  updateHUD();renderBoard();showMortgageToAfford();
+}
+
+// ═══════════════════════════════════════════
+// SUBASTA
+// ═══════════════════════════════════════════
+let _auction={};
+function startAuction(){
+  closeModal();const sq=SQUARES[_pendingBuySquare];
+  const startBid=1;
+  _auction={sqIdx:_pendingBuySquare,doubles:_pendingBuyDoubles,currentBid:startBid,currentLeader:-1,turnBidder:G.current,passes:0,history:[],startBid};
+  addLog(`🔨 ¡Subasta de ${sq.name}! Empieza en S/1`);
+  // En online: notificar al rival que hay subasta
+  if(MODE==='online') publishAuction();
+  showAuctionModal();
+}
+
+function showAuctionModal(){
+  const sq=SQUARES[_auction.sqIdx];const bidder=_auction.turnBidder;const p=G.players[bidder];
+  const minBid=_auction.currentLeader===-1?_auction.startBid:_auction.currentBid+1;
+  const histHtml=_auction.history.slice(-4).reverse().map(h=>`<p style="font-size:11px;color:#8a7a5a;margin:1px 0;"><span style="color:${P_COLORS[h.who]}">${G.players[h.who].name}</span>: S/${h.bid}</p>`).join('');
+  // En online, solo puede pujar/pasar el jugador de turno
+  const isMyBidTurn = MODE==='offline' || bidder===MY_PLAYER_ID;
+  const mortgageable=p.props.filter(i=>!G.props[i].mortgaged&&G.props[i].houses===0);
+  const sellableHouses=getSellableHouses(bidder);
+  const mortgageHtml=(isMyBidTurn&&(mortgageable.length||sellableHouses.length))?`
+    <div style="margin-top:8px;border-top:1px solid var(--dim);padding-top:8px;">
+      <div style="font-size:11px;color:#f0c040;margin-bottom:4px;">🏦 Obtener más dinero:</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;">
+        ${mortgageable.map(sqIdx=>{
+          const s=SQUARES[sqIdx],val=s.mortgage||Math.floor((s.price||150)/2);
+          return `<button class="btn btn-danger" style="font-size:10px;padding:4px 8px;flex:0;min-width:auto;" onclick="mortgagePropInAuction(${sqIdx})">
+            ${s.type==='prop'?`<span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${s.color};vertical-align:middle;margin-right:2px;"></span>`:''}${s.name} +S/${val}
+          </button>`;
+        }).join('')}
+        ${sellableHouses.map(sqIdx=>{
+          const s=SQUARES[sqIdx],val=Math.floor(s.house/2);
+          return `<button class="btn btn-orange" style="font-size:10px;padding:4px 8px;flex:0;min-width:auto;" onclick="sellHouseInAuction(${sqIdx})">
+            <span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${s.color};vertical-align:middle;margin-right:2px;"></span>${s.name} -🏠+S/${val}
+          </button>`;
+        }).join('')}
+      </div>
+    </div>`:'';
+  const body=`
+    <div class="auction-box">
+      <div style="font-size:10px;color:#8a7a5a;margin-bottom:2px;">OFERTA ACTUAL</div>
+      <div class="auction-price">S/${_auction.currentLeader===-1?'—':_auction.currentBid}</div>
+      ${_auction.currentLeader!==-1?`<div style="font-size:11px;color:${P_COLORS[_auction.currentLeader]};margin-top:4px;">Lidera: ${G.players[_auction.currentLeader].name}</div>`:'<div style="font-size:11px;color:#8a7a5a;">Sin ofertas aún — ¡desde S/1!</div>'}
+    </div>
+    <div style="font-size:12px;margin-bottom:8px;color:${P_COLORS[bidder]};">Turno de <b>${p.name}</b> · Disponible: S/${p.money}</div>
+    ${isMyBidTurn?`<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+      <input class="auction-input" type="number" id="auction-input" min="${minBid}" value="${minBid}" style="flex:1;">
+      <button class="btn btn-primary" style="flex:0;min-width:auto;padding:10px 14px;font-size:13px;" onclick="${MODE==='online'?'placeBidOnline':'placeBid'}()">PUJAR</button>
+    </div>`:`<div style="background:#1a1209;border-radius:8px;padding:10px;margin-bottom:8px;font-size:12px;color:#8a7a5a;text-align:center;">⏳ Esperando puja de ${p.name}...</div>`}
+    ${histHtml?`<div style="max-height:60px;overflow-y:auto;">${histHtml}</div>`:''}
+    ${mortgageHtml}`;
+  openModal('🔨 SUBASTA',sq.name+' · desde S/1',body,
+    isMyBidTurn?[{label:'⏭️ PASAR',cls:'btn-dark',fn:`${MODE==='online'?'passAuctionOnline':'passAuction'}()`}]:[],
+    bidder);
+  document.getElementById('modal-overlay').onclick=null;
+}
+
+function mortgagePropInAuction(sqIdx){
+  const bidder=_auction.turnBidder;const p=G.players[bidder];
+  const sq=SQUARES[sqIdx],pd=G.props[sqIdx];
+  if(pd.houses>0){addLog('Vende casas primero.');return;}
+  const val=sq.mortgage||Math.floor((sq.price||150)/2);
+  pd.mortgaged=true;p.money+=val;
+  addLog(`${p.name} hipotecó ${sq.name} en subasta. Cobra S/${val}.`);
+  updateHUD();renderBoard();
+  if(MODE==='online') publishAuction();
+  showAuctionModal();
+}
+
+function sellHouseInAuction(sqIdx){
+  const bidder=_auction.turnBidder;const p=G.players[bidder];
+  const sq=SQUARES[sqIdx],pd=G.props[sqIdx];
+  const val=Math.floor(sq.house/2);
+  pd.houses--;p.money+=val;
+  addLog(`${p.name} vendió casa en ${sq.name}. Cobra S/${val}.`);
+  updateHUD();renderBoard();
+  if(MODE==='online') publishAuction();
+  showAuctionModal();
+}
+
+function placeBid(){
+  const bidder=_auction.turnBidder;const p=G.players[bidder];
+  const input=document.getElementById('auction-input');const bid=parseInt(input.value)||0;
+  const minBid=_auction.currentLeader===-1?_auction.startBid:_auction.currentBid+1;
+  if(bid<minBid){input.style.borderColor='#c0392b';input.value=minBid;return;}
+  if(bid>p.money){input.style.borderColor='#c0392b';addLog(p.name+': no tienes S/'+bid);return;}
+  _auction.currentBid=bid;_auction.currentLeader=bidder;_auction.passes=0;_auction.history.push({who:bidder,bid});
+  addLog(`${p.name} ofertó S/${bid}`);
+  _auction.turnBidder=(_auction.turnBidder+1)%G.players.filter(p=>!p.bankrupt).length;
+  showAuctionModal();
+}
+
+function passAuction(){
+  addLog(G.players[_auction.turnBidder].name+' pasó.');_auction.passes++;
+  const activePlayers=G.players.filter(p=>!p.bankrupt).length;
+  if(_auction.passes>=activePlayers||(_auction.currentLeader!==-1&&_auction.passes>=activePlayers-1)){endAuction();return;}
+  _auction.turnBidder=(_auction.turnBidder+1)%G.players.length;
+  while(G.players[_auction.turnBidder].bankrupt)_auction.turnBidder=(_auction.turnBidder+1)%G.players.length;
+  showAuctionModal();
+}
+
+function endAuction(){
+  closeModal();document.getElementById('modal-overlay').onclick=(e)=>closeModalOutside(e);
+  if(_auction.currentLeader===-1){addLog('Subasta cancelada.');afterLand(G.current,_auction.doubles);return;}
+  const winner=G.players[_auction.currentLeader];const sq=SQUARES[_auction.sqIdx];
+  winner.money-=_auction.currentBid;G.props[sq.i].owner=_auction.currentLeader;winner.props.push(sq.i);
+  addLog(`🔨 ${winner.name} ganó ${sq.name} por S/${_auction.currentBid}!`);
+  updateHUD();renderBoard();afterLand(G.current,_auction.doubles);
+}
+
+// ═══════════════════════════════════════════
+// BUILD
+// ═══════════════════════════════════════════
+function showBuildModal(){
+  const pidx=G.current,p=G.players[pidx];
+  const ownedProps=p.props.filter(i=>SQUARES[i].type==='prop');
+  if(!ownedProps.length){openModal('Sin propiedades','','No tienes propiedades.',[{label:'Cerrar',cls:'btn-dark',fn:'closeModal()'}],pidx);return;}
+  const groupsOwned={};ownedProps.forEach(i=>{const g=SQUARES[i].group;if(!groupsOwned[g])groupsOwned[g]=[];groupsOwned[g].push(i);});
+  const monopolies=Object.entries(groupsOwned).filter(([g,ids])=>ids.length===SQUARES.filter(s=>s.type==='prop'&&s.group===parseInt(g)).length);
+  if(!monopolies.length){openModal('Sin monopolios','','Necesitas el grupo completo.',[{label:'Cerrar',cls:'btn-dark',fn:'closeModal()'}],pidx);return;}
+  let html='<div class="prop-list">';
+  monopolies.forEach(([g,ids])=>ids.forEach(sqIdx=>{
+    const sq=SQUARES[sqIdx],pd=G.props[sqIdx];
+    html+=`<div class="prop-item"><div><div class="prop-item-name"><span class="color-chip" style="background:${sq.color}"></span>${sq.name}</div>
+    <div class="prop-item-detail">${pd.houses===5?'🏨 Hotel':pd.houses?'■'.repeat(pd.houses)+' casas':'Sin casas'} · S/${sq.house}/casa</div></div>
+    ${pd.houses<5&&!pd.mortgaged&&p.money>=sq.house?`<button class="btn btn-green" style="font-size:12px;padding:8px 10px;flex:0;" onclick="buildHouse(${sqIdx})">+casa</button>`:'<span style="font-size:10px;color:#444;">No disp.</span>'}
+    </div>`;
+  }));
+  html+='</div>';
+  openModal('🏗️ Construir','',html,[{label:'Cerrar',cls:'btn-dark',fn:'closeModal()'}],pidx);
+}
+
+function buildHouse(sqIdx){
+  const pidx=G.current,p=G.players[pidx],sq=SQUARES[sqIdx],pd=G.props[sqIdx];
+  if(p.money<sq.house){addLog('Sin fondos!');return;}
+  const gIds=SQUARES.filter(s=>s.type==='prop'&&s.group===sq.group).map(s=>s.i);
+  if(pd.houses>Math.min(...gIds.map(i=>G.props[i].houses))){addLog('Construye uniformemente.');return;}
+  p.money-=sq.house;pd.houses++;addLog(`${p.name} construyó ${pd.houses===5?'hotel':'casa'} en ${sq.name}.`);
+  updateHUD();renderBoard();showBuildModal();publishState();
+}
+
+// ═══════════════════════════════════════════
+// MORTGAGE
+// ═══════════════════════════════════════════
+function showMortgageModal(){
+  const pidx=G.current,p=G.players[pidx];
+  if(!p.props.length){openModal('Sin propiedades','','No tienes propiedades.',[{label:'Cerrar',cls:'btn-dark',fn:'closeModal()'}],pidx);return;}
+  let html='<div class="prop-list">';
+  p.props.forEach(sqIdx=>{
+    const sq=SQUARES[sqIdx],pd=G.props[sqIdx];
+    const val=sq.mortgage||Math.floor((sq.price||150)/2);const uVal=Math.floor(val*1.1);
+    const propBadge=sq.type==='prop'?`<span class="color-chip" style="background:${sq.color};width:14px;height:14px;border-radius:3px;display:inline-block;vertical-align:middle;margin-right:4px;"></span>`:(sq.icon?`<span style="margin-right:4px;">${sq.icon}</span>`:'');
+    if(!pd.mortgaged){html+=`<div class="prop-item"><div><div class="prop-item-name">${propBadge}${sq.name}</div><div class="prop-item-detail">Cobra S/${val}</div></div><button class="btn btn-danger" style="font-size:11px;padding:6px 10px;flex:0" onclick="mortgageProp(${sqIdx})">Hipotecar</button></div>`;}
+    else{html+=`<div class="prop-item"><div><div class="prop-item-name">${propBadge}${sq.name} 🔒</div><div class="prop-item-detail">Levantar: S/${uVal}</div></div>${p.money>=uVal?`<button class="btn btn-green" style="font-size:11px;padding:6px 10px;flex:0" onclick="unmortgageProp(${sqIdx})">Levantar</button>`:''}</div>`;}
+  });
+  html+='</div>';openModal('🏦 Hipotecar','',html,[{label:'Cerrar',cls:'btn-dark',fn:'closeModal()'}],pidx);
+}
+
+function mortgageProp(sqIdx){
+  const p=G.players[G.current],sq=SQUARES[sqIdx],pd=G.props[sqIdx];
+  if(pd.houses>0){addLog('Vende casas primero.');return;}
+  const val=sq.mortgage||Math.floor((sq.price||150)/2);
+  pd.mortgaged=true;p.money+=val;addLog(`${p.name} hipotecó ${sq.name}. Cobra S/${val}.`);
+  updateHUD();renderBoard();showMortgageModal();publishState();
+}
+
+function unmortgageProp(sqIdx){
+  const p=G.players[G.current],sq=SQUARES[sqIdx],pd=G.props[sqIdx];
+  const val=sq.mortgage||Math.floor((sq.price||150)/2);const cost=Math.floor(val*1.1);
+  if(p.money<cost){addLog('Sin fondos!');return;}
+  pd.mortgaged=false;p.money-=cost;addLog(`${p.name} levantó hipoteca de ${sq.name}. Pagó S/${cost}.`);
+  updateHUD();renderBoard();showMortgageModal();publishState();
+}
+
+// ═══════════════════════════════════════════
+// TRADE
+// ═══════════════════════════════════════════
+let _trade={offerIdx:null,requestIdx:null};
+let _tradeTargetId=null;
+let _pendingTradeFrom=null,_pendingTradeTo=null,_pendingTradeOffer=null,_pendingTradeRequest=null;
+
+function showIncomingTradeModal(){
+  const fromP=G.players[_pendingTradeFrom];
+  const os=SQUARES[_pendingTradeOffer], rs=SQUARES[_pendingTradeRequest];
+  const body=`<div style="background:#12100a;border-radius:12px;padding:16px;text-align:center;margin-bottom:14px;">
+    <div style="font-size:13px;color:#f0c040;font-family:Oswald,sans-serif;margin-bottom:12px;">📨 ${fromP.name} te propone un intercambio:</div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:16px;">
+      <div style="text-align:center;">
+        <div style="font-size:10px;color:#8a7a5a;margin-bottom:4px;">TE DA</div>
+        <div style="display:inline-block;width:20px;height:20px;border-radius:4px;background:${os.color||'#888'};margin-bottom:4px;"></div>
+        <div style="font-family:Oswald,sans-serif;font-size:16px;color:var(--gold2);">${os.name}</div>
+        <div style="font-size:11px;color:#8a7a5a;">S/${os.price||150}</div>
+      </div>
+      <div style="font-size:32px;color:var(--gold);">⇄</div>
+      <div style="text-align:center;">
+        <div style="font-size:10px;color:#8a7a5a;margin-bottom:4px;">LE DAS</div>
+        <div style="display:inline-block;width:20px;height:20px;border-radius:4px;background:${rs.color||'#888'};margin-bottom:4px;"></div>
+        <div style="font-family:Oswald,sans-serif;font-size:16px;color:var(--gold2);">${rs.name}</div>
+        <div style="font-size:11px;color:#8a7a5a;">S/${rs.price||150}</div>
+      </div>
+    </div>
+  </div>
+  <div style="font-size:12px;color:#8a7a5a;text-align:center;">¿Aceptas el intercambio?</div>`;
+  openModal('🤝 TRADE',`Propuesta de ${fromP.name}`,body,[
+    {label:'✅ ACEPTAR',cls:'btn-green',fn:'acceptIncomingTrade()'},
+    {label:'❌ RECHAZAR',cls:'btn-danger',fn:'rejectIncomingTrade()'}],_pendingTradeTo);
+}
+
+function acceptIncomingTrade(){
+  closeModal();
+  if(_pendingTradeOffer===null||_pendingTradeRequest===null){showToast('Error en el trade');return;}
+  const fromP=_pendingTradeFrom, toP=_pendingTradeTo;
+  const oIdx=_pendingTradeOffer, rIdx=_pendingTradeRequest;
+  G.props[oIdx].owner=toP; G.props[rIdx].owner=fromP;
+  G.players[fromP].props=G.players[fromP].props.filter(i=>i!==oIdx); G.players[fromP].props.push(rIdx);
+  G.players[toP].props=G.players[toP].props.filter(i=>i!==rIdx); G.players[toP].props.push(oIdx);
+  addLog(`✅ Trade aceptado: ${G.players[fromP].name} ↔ ${G.players[toP].name}`);
+  _trade={offerIdx:null,requestIdx:null};
+  _pendingTradeFrom=null;_pendingTradeTo=null;_pendingTradeOffer=null;_pendingTradeRequest=null;
+  updateHUD(); renderBoard(); publishState();
+}
+
+function rejectIncomingTrade(){
+  closeModal();
+  addLog(`❌ ${G.players[_pendingTradeTo]?.name||'Rival'} rechazó el trade.`);
+  const data={type:'trade-rejected', byPidx: _pendingTradeTo};
+  if(IS_HOST){ broadcast(data,null); }
+  else{ if(conn&&conn.open) conn.send(data); }
+  _trade={offerIdx:null,requestIdx:null};
+  _pendingTradeFrom=null;_pendingTradeTo=null;_pendingTradeOffer=null;_pendingTradeRequest=null;
+}
+
+function showTradeModal(){
+  const pidx=G.current;
+  if(MODE==='online'&&!isMyAction()){showToast('No es tu turno');return;}
+  const rivals=G.players.filter(p=>p.id!==pidx&&!p.bankrupt);
+  if(!rivals.length){openModal('Sin rivales','','No hay otros jugadores activos.',[{label:'Cerrar',cls:'btn-dark',fn:'closeModal()'}],pidx);return;}
+  // Si hay más de un rival, mostrar selector
+  if(rivals.length>1){
+    let html='<div style="display:flex;flex-direction:column;gap:8px;">';
+    rivals.forEach(r=>{
+      html+=`<button class="btn btn-dark" style="text-align:left;display:flex;align-items:center;gap:10px;"
+        onclick="closeModal();_tradeTargetId=${r.id};renderTradeModal(${pidx},${r.id})">
+        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${P_COLORS[r.id]};"></span>
+        ${r.name} (${r.props.length} props)
+      </button>`;
+    });
+    html+='</div>';
+    openModal('🤝 TRADE','¿Con quién?',html,[{label:'Cancelar',cls:'btn-dark',fn:'closeModal()'}],pidx);
+    return;
+  }
+  const rival=rivals[0].id;
+  const myProps=G.players[pidx].props;const theirProps=G.players[rival].props;
+  if(!myProps.length&&!theirProps.length){openModal('🤝 TRADE','Sin propiedades','Nadie tiene propiedades.',[{label:'Cerrar',cls:'btn-dark',fn:'closeModal()'}],pidx);return;}
+  _trade={offerIdx:null,requestIdx:null};
+  _tradeTargetId=rival;
+  renderTradeModal(pidx,rival);
+}
+
+function renderTradeModal(pidx,rival){
+  const myProps=G.players[pidx].props;const theirProps=G.players[rival].props;
+  function propHtml(sqIdx,side){
+    const sq=SQUARES[sqIdx],pd=G.props[sqIdx];
+    const isSel=(side==='offer'&&_trade.offerIdx===sqIdx)||(side==='request'&&_trade.requestIdx===sqIdx);
+    const hasH=pd.houses>0;
+    return `<div class="prop-item${isSel?' selected-trade':''}" style="cursor:pointer;${hasH?'opacity:0.5':''}" onclick="selectTradeProp(${sqIdx},'${side}')">
+      <div><div class="prop-item-name"><span class="color-chip" style="background:${sq.color||'#888'}"></span>${sq.name}${pd.mortgaged?' 🔒':''}</div>
+      <div class="prop-item-detail">${hasH?'⚠️ Con casas':('S/'+sq.price)}</div></div>
+      ${isSel?'<span style="color:var(--gold2);font-size:18px;">✓</span>':''}
+    </div>`;
+  }
+  let html=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+    <div><div style="font-size:11px;color:${P_COLORS[pidx]};font-family:Oswald,sans-serif;margin-bottom:6px;">📤 TÚ (${G.players[pidx].name})</div>
+    <div style="display:flex;flex-direction:column;gap:4px;max-height:150px;overflow-y:auto;">${myProps.length?myProps.map(i=>propHtml(i,'offer')).join(''):'<p style="font-size:11px;color:#555;padding:6px;">Sin props</p>'}</div></div>
+    <div><div style="font-size:11px;color:${P_COLORS[rival]};font-family:Oswald,sans-serif;margin-bottom:6px;">📥 ${G.players[rival].name}</div>
+    <div style="display:flex;flex-direction:column;gap:4px;max-height:150px;overflow-y:auto;">${theirProps.length?theirProps.map(i=>propHtml(i,'request')).join(''):'<p style="font-size:11px;color:#555;padding:6px;">Sin props</p>'}</div></div>
+  </div>`;
+  if(_trade.offerIdx!==null&&_trade.requestIdx!==null){
+    const os=SQUARES[_trade.offerIdx],rs=SQUARES[_trade.requestIdx];
+    html+=`<div style="background:#12100a;border-radius:10px;padding:12px;text-align:center;margin-bottom:4px;">
+      <span style="color:${P_COLORS[pidx]}">${os.name}</span><span style="color:#d4a017;margin:0 8px;font-size:18px;">⇄</span><span style="color:${P_COLORS[rival]}">${rs.name}</span></div>`;
+  }
+  const canPropose=_trade.offerIdx!==null&&_trade.requestIdx!==null;
+  openModal('🤝 TRADE','',html,[
+    ...(canPropose?[{label:'📨 Proponer',cls:'btn-purple',fn:`proposeTrade(${pidx},${rival})`}]:[]),
+    {label:'Cancelar',cls:'btn-dark',fn:'closeModal()'}],pidx);
+}
+
+function selectTradeProp(sqIdx,side){
+  if(G.props[sqIdx].houses>0){addLog('No se puede tradear con casas.');return;}
+  if(side==='offer')_trade.offerIdx=(_trade.offerIdx===sqIdx?null:sqIdx);
+  else _trade.requestIdx=(_trade.requestIdx===sqIdx?null:sqIdx);
+  renderTradeModal(G.current, _tradeTargetId!==null ? _tradeTargetId : G.players.find(p=>p.id!==G.current&&!p.bankrupt).id);
+}
+
+function proposeTrade(pidx,rival){
+  // Guardar los índices ANTES de closeModal (que podría limpiarlos)
+  const savedOffer = _trade.offerIdx;
+  const savedRequest = _trade.requestIdx;
+  closeModal();
+  if(savedOffer===null||savedRequest===null){showToast('Selecciona propiedades primero');return;}
+  _trade.offerIdx = savedOffer;
+  _trade.requestIdx = savedRequest;
+  const os=SQUARES[savedOffer],rs=SQUARES[savedRequest];
+  addLog(`🤝 ${G.players[pidx].name} propone: ${os.name} ⇄ ${rs.name}`);
+  console.log('proposeTrade MODE:', MODE, 'offer:', savedOffer, 'request:', savedRequest, 'conn:', conn?.open);
+  if(MODE==='online'){
+    // En online: enviar la propuesta al rival via PeerJS
+    publishTradeProposal(pidx, rival, savedOffer, savedRequest);
+    showToast('Propuesta enviada. Esperando respuesta...');
+  } else {
+    // En offline: mostrar modal al rival localmente
+    const body=`<div style="background:#12100a;border-radius:12px;padding:16px;text-align:center;margin-bottom:14px;">
+      <div style="font-size:12px;color:#8a7a5a;margin-bottom:8px;">${G.players[pidx].name} te propone:</div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:12px;">
+        <div style="text-align:center;"><div style="font-size:10px;color:#8a7a5a;">TE DA</div>
+        <span class="color-chip" style="background:${os.color||'#888'}"></span>
+        <div style="font-family:Oswald,sans-serif;font-size:15px;color:var(--gold2);">${os.name}</div></div>
+        <div style="font-size:28px;color:var(--gold);">⇄</div>
+        <div style="text-align:center;"><div style="font-size:10px;color:#8a7a5a;">LE DAS</div>
+        <span class="color-chip" style="background:${rs.color||'#888'}"></span>
+        <div style="font-family:Oswald,sans-serif;font-size:15px;color:var(--gold2);">${rs.name}</div></div>
+      </div></div>
+      <div style="font-size:12px;color:#8a7a5a;text-align:center;">¿Aceptas?</div>`;
+    openModal('🤝 TRADE',`Propuesta de ${G.players[pidx].name}`,body,[
+      {label:'✅ ACEPTAR',cls:'btn-green',fn:`acceptTrade(${pidx},${rival})`},
+      {label:'❌ RECHAZAR',cls:'btn-danger',fn:`rejectTrade(${pidx})`}],rival);
+  }
+}
+
+function rejectTradeRemote(fromPidx){
+  closeModal();
+  addLog(`❌ ${G.players[MY_PLAYER_ID].name} rechazó el trade.`);
+  _trade={offerIdx:null,requestIdx:null};
+  const data={type:'trade-rejected', byPidx: MY_PLAYER_ID};
+  if(IS_HOST){ broadcast(data,null); }
+  else{ if(conn&&conn.open) conn.send(data); }
+  publishState();
+}
+
+function acceptTrade(pidx,rival){
+  closeModal();
+  const oIdx=_trade.offerIdx,rIdx=_trade.requestIdx;
+  if(oIdx===null||rIdx===null){showToast('Error: propiedades no encontradas');return;}
+  G.props[oIdx].owner=rival;G.props[rIdx].owner=pidx;
+  G.players[pidx].props=G.players[pidx].props.filter(i=>i!==oIdx);G.players[pidx].props.push(rIdx);
+  G.players[rival].props=G.players[rival].props.filter(i=>i!==rIdx);G.players[rival].props.push(oIdx);
+  addLog(`✅ Trade: ${G.players[pidx].name} dio ${SQUARES[oIdx].name} ↔ ${G.players[rival].name} dio ${SQUARES[rIdx].name}`);
+  _trade={offerIdx:null,requestIdx:null};
+  updateHUD();renderBoard();
+  publishState(); // Sincroniza al que propuso
+}
+
+function rejectTrade(pidx){closeModal();addLog(`❌ Rival rechazó el trade.`);_trade={offerIdx:null,requestIdx:null};}
+
+// ═══════════════════════════════════════════
+// PROPS LIST
+// ═══════════════════════════════════════════
+function showProps(){
+  let html='';G.players.forEach(p=>{
+    html+=`<div style="margin-bottom:16px;"><div style="font-family:Oswald,sans-serif;font-size:14px;color:${P_COLORS[p.id]};margin-bottom:8px;">${p.name} — S/${p.money}</div><div class="prop-list">`;
+    if(!p.props.length)html+='<p style="font-size:12px;color:#555;padding:8px;">Sin propiedades</p>';
+    p.props.forEach(sqIdx=>{const sq=SQUARES[sqIdx],pd=G.props[sqIdx];html+=`<div class="prop-item"><div><div class="prop-item-name"><span class="color-chip" style="background:${sq.color||'#888'}"></span>${sq.name}${pd.mortgaged?' 🔒':''}</div><div class="prop-item-detail">${pd.houses===5?'Hotel':pd.houses?pd.houses+' casas':''} S/${sq.price||150}</div></div></div>`;});
+    html+='</div></div>';
+  });
+  openModal('Propiedades','',html,[{label:'Cerrar',cls:'btn-dark',fn:'closeModal()'}],G.current);
+}
+
+// ═══════════════════════════════════════════
+// END TURN
+// ═══════════════════════════════════════════
+function endTurn(){
+  if(!isMyAction()){showToast('No es tu turno');return;}
+  const sfx=getActiveSuffix();
+  ['die1','die2'].forEach(d=>{const el=document.getElementById(d+sfx);if(el){el.textContent='🎲';el.style.color='';}});
+  ['dice-sum','dice-info'].forEach(d=>{const el=document.getElementById(d+sfx);if(el)el.textContent='';});
+  G.doublesCount=0;
+  G.current=(G.current+1)%G.players.length;
+  let att=0;while(G.players[G.current].bankrupt&&att<4){G.current=(G.current+1)%G.players.length;att++;}
+  if(G.players.filter(p=>!p.bankrupt).length<=1){checkWin();return;}
+  updateHUD();setPhase('pre-roll');
+  addLog('Turno de '+G.players[G.current].name,G.current);
+  publishState();
+}
+
+// ═══════════════════════════════════════════
+// CELL CLICK
+// ═══════════════════════════════════════════
+function cellClick(idx){
+  const sq=SQUARES[idx],pd=G.props[idx];
+  if(sq.type==='prop'||sq.type==='railroad'||sq.type==='utility'){
+    const owner=pd.owner!==null?G.players[pd.owner].name:'Nadie';
+    const val=sq.mortgage||Math.floor((sq.price||150)/2);
+    openModal(sq.name,sq.type==='railroad'?'Ferroviaria':sq.type==='utility'?'Servicio':'Propiedad',
+      `<div class="prop-detail">
+        <div class="prop-row"><span>Precio</span><span>S/${sq.price||150}</span></div>
+        <div class="prop-row"><span>Dueño</span><span>${owner}</span></div>
+        <div class="prop-row"><span>Estado</span><span>${pd.mortgaged?'Hipotecada':pd.houses===5?'Hotel':pd.houses?pd.houses+' casas':'Sin construir'}</span></div>
+        ${sq.type==='prop'?`<div class="prop-row"><span>Renta base</span><span>S/${sq.rent[0]}</span></div>
+        <div class="prop-row"><span>Monopolio</span><span>S/${sq.rent[0]*2}</span></div>
+        <div class="prop-row"><span>1 casa</span><span>S/${sq.rent[1]}</span></div>
+        <div class="prop-row"><span>Hotel</span><span>S/${sq.rent[5]}</span></div>
+        <div class="prop-row"><span>Hipoteca</span><span>S/${val}</span></div>`:''}
+      </div>`,
+      [{label:'Cerrar',cls:'btn-dark',fn:'closeModal()'}],G.current);
+  }
+}
+
+// ═══════════════════════════════════════════
+// MODAL
+// ═══════════════════════════════════════════
+function openModal(title,subtitle,body,btns,forPlayer){
+  document.getElementById('modal-title').textContent=title;
+  document.getElementById('modal-subtitle').textContent=subtitle;
+  document.getElementById('modal-body').innerHTML=body;
+  const mb=document.getElementById('modal-btns');mb.innerHTML='';
+  btns.forEach(b=>{
+    if(!b.label)return;
+    const btn=document.createElement('button');
+    btn.className='btn '+b.cls;btn.textContent=b.label;
+    btn.onclick=b.fn?new Function(b.fn):null;
+    mb.appendChild(btn);
+  });
+  const overlay=document.getElementById('modal-overlay');
+  const target=forPlayer!==undefined?forPlayer:G.current;
+  overlay.classList.toggle('p2-modal',MODE==='offline'&&target===1);
+  overlay.classList.add('active');
+  overlay.onclick=(e)=>closeModalOutside(e);
+}
+function closeModal(){const o=document.getElementById('modal-overlay');o.classList.remove('active','p2-modal');o.onclick=(e)=>closeModalOutside(e);}
+function closeModalOutside(e){if(e.target===document.getElementById('modal-overlay'))closeModal();}
+
+// ═══════════════════════════════════════════
+// FASE DE ORDEN — tirada inicial
+// ═══════════════════════════════════════════
+let _orderRolls = [];   // [{pidx, roll}]
+let _orderCurrentPidx = 0;  // quién tira ahora
+
+function startOrderRolling(){
+  _orderRolls = [];
+  _orderCurrentPidx = 0;
+  addLog('🎲 ¡Tiren para ver quién empieza!');
+  showOrderRollModal();
+}
+
+function showOrderRollModal(){
+  const pidx = _orderCurrentPidx;
+  const p = G.players[pidx];
+  const alreadyRolled = _orderRolls.find(r=>r.pidx===pidx);
+
+  // Construir resumen de tiradas previas
+  let prevHtml = '';
+  if(_orderRolls.length>0){
+    prevHtml = '<div style="margin-bottom:12px;">';
+    _orderRolls.forEach(r=>{
+      const pl=G.players[r.pidx];
+      prevHtml+=`<div style="display:flex;align-items:center;gap:8px;margin:3px 0;font-size:13px;">
+        <span style="color:${P_COLORS[r.pidx]}">${pl.token} ${pl.name}</span>
+        <span style="margin-left:auto;font-family:Oswald,sans-serif;font-size:16px;color:var(--gold2);">${r.roll}</span>
+      </div>`;
+    });
+    prevHtml += '</div>';
+  }
+
+  // En online: si NO es mi turno de tirada, mostrar espera
+  const isMyOrderTurn = MODE==='offline' || pidx===MY_PLAYER_ID;
+
+  const body = `
+    <div style="text-align:center;margin-bottom:14px;">
+      <div style="font-size:40px;margin-bottom:6px;">${p.token}</div>
+      <div style="font-family:Oswald,sans-serif;font-size:18px;color:${P_COLORS[pidx]};">${p.name}</div>
+      <div style="font-size:12px;color:#8a7a5a;margin-top:4px;">tira para ver su orden</div>
+    </div>
+    ${prevHtml}
+    <div id="order-dice-display" style="font-size:48px;text-align:center;margin:12px 0;min-height:56px;"></div>
+    ${isMyOrderTurn
+      ? `<button class="btn btn-primary" style="width:100%;font-size:18px;padding:14px;" onclick="rollOrderDice(${pidx})">🎲 TIRAR</button>`
+      : `<div style="text-align:center;color:#8a7a5a;font-size:13px;padding:10px;">⏳ Esperando que ${p.name} tire...</div>`
+    }`;
+
+  openModal('🎲 ORDEN DE JUEGO',
+    `Jugador ${_orderRolls.length+1} de ${G.players.length}`,
+    body,
+    [], pidx);
+  // No cerrar con clic fuera
+  document.getElementById('modal-overlay').onclick=null;
+}
+
+function rollOrderDice(pidx){
+  if(MODE==='online' && pidx!==MY_PLAYER_ID){showToast('No es tu turno');return;}
+  const roll = Math.ceil(Math.random()*6) + Math.ceil(Math.random()*6);
+  const face1 = DICE_FACES[Math.ceil(Math.random()*6)-1];
+  const face2 = DICE_FACES[Math.ceil(Math.random()*6)-1];
+  const diceEl = document.getElementById('order-dice-display');
+  if(diceEl) diceEl.textContent = face1+' '+face2;
+
+  _orderRolls.push({pidx, roll});
+  addLog(`${G.players[pidx].name} sacó ${roll} para el orden.`);
+
+  if(MODE==='online'){
+    // Publicar la tirada a los demás
+    const data={type:'order-roll', pidx, roll};
+    if(IS_HOST){ broadcast(data, null); }
+    else{ try{ conn.send(data); }catch(e){} }
+  }
+
+  // Esperar un momento para que se vea el dado y avanzar
+  setTimeout(()=>{
+    _orderCurrentPidx++;
+    if(_orderCurrentPidx < G.players.length){
+      // En online: si el siguiente soy yo, o si es offline, mostrar modal
+      // Si no soy yo, el modal de espera se mostrará cuando llegue el mensaje
+      if(MODE==='offline'){
+        showOrderRollModal();
+      } else {
+        // En online, el host avanza el modal para todos via state
+        showOrderRollModal();
+      }
+    } else {
+      finishOrderRolling();
+    }
+  }, 900);
+}
+
+function receiveOrderRoll(pidx, roll){
+  // Solo llega en online — alguien más tiró
+  _orderRolls.push({pidx, roll});
+  addLog(`${G.players[pidx].name} sacó ${roll} para el orden.`);
+  _orderCurrentPidx++;
+  if(_orderCurrentPidx < G.players.length){
+    showOrderRollModal();
+  } else {
+    finishOrderRolling();
+  }
+}
+
+function finishOrderRolling(){
+  // Resolver empates: repetir tirada entre empatados
+  const maxRoll = Math.max(..._orderRolls.map(r=>r.roll));
+  const tied = _orderRolls.filter(r=>r.roll===maxRoll);
+  if(tied.length > 1){
+    // Hay empate — repetir solo entre los empatados
+    addLog(`⚠️ Empate entre ${tied.map(r=>G.players[r.pidx].name).join(' y ')} (${maxRoll}). ¡Repiten!`);
+    const tiedPlayers = tied.map(r=>r.pidx);
+    setTimeout(()=>{
+      _orderRolls = _orderRolls.filter(r=>!tiedPlayers.includes(r.pidx));
+      // Guardar el orden parcial de los no-empatados para mantenerlo
+      startTiebreaker(tiedPlayers, _orderRolls);
+    }, 1200);
+    return;
+  }
+
+  // Ordenar de mayor a menor
+  _orderRolls.sort((a,b)=>b.roll-a.roll);
+  applyFinalOrder();
+}
+
+let _fixedOrder = []; // orden ya establecido para jugadores no empatados
+
+function startTiebreaker(tiedPidxs, resolvedRolls){
+  _fixedOrder = resolvedRolls; // los que ya tienen orden definido
+  _orderRolls = [];
+  _orderCurrentPidx = 0;
+  // Reasignar _orderCurrentPidx al primero de los empatados
+  _orderCurrentPidx = tiedPidxs[0];
+  showTiebreakerModal(tiedPidxs, 0);
+}
+
+function showTiebreakerModal(tiedPidxs, idx){
+  const pidx = tiedPidxs[idx];
+  const p = G.players[pidx];
+  const isMyOrderTurn = MODE==='offline' || pidx===MY_PLAYER_ID;
+
+  let prevHtml = '';
+  if(_orderRolls.length>0){
+    prevHtml = '<div style="margin-bottom:10px;">';
+    _orderRolls.forEach(r=>{
+      const pl=G.players[r.pidx];
+      prevHtml+=`<div style="display:flex;align-items:center;gap:8px;margin:3px 0;font-size:13px;">
+        <span style="color:${P_COLORS[r.pidx]}">${pl.token} ${pl.name}</span>
+        <span style="margin-left:auto;font-family:Oswald,sans-serif;font-size:16px;color:var(--gold2);">${r.roll}</span>
+      </div>`;
+    });
+    prevHtml += '</div>';
+  }
+
+  const body=`
+    <div style="background:#2d1a00;border-radius:10px;padding:10px;margin-bottom:12px;font-size:12px;color:#f0c040;text-align:center;">
+      ⚡ Desempate — tiran de nuevo
+    </div>
+    <div style="text-align:center;margin-bottom:14px;">
+      <div style="font-size:36px;">${p.token}</div>
+      <div style="font-family:Oswald,sans-serif;font-size:16px;color:${P_COLORS[pidx]};">${p.name}</div>
+    </div>
+    ${prevHtml}
+    <div id="order-dice-display" style="font-size:48px;text-align:center;margin:10px 0;min-height:56px;"></div>
+    ${isMyOrderTurn
+      ? `<button class="btn btn-primary" style="width:100%;font-size:18px;padding:14px;" onclick="rollTiebreakerDice(${JSON.stringify(tiedPidxs)},${idx})">🎲 TIRAR</button>`
+      : `<div style="text-align:center;color:#8a7a5a;font-size:13px;padding:10px;">⏳ Esperando que ${p.name} tire...</div>`
+    }`;
+
+  openModal('🎲 DESEMPATE','', body, [], pidx);
+  document.getElementById('modal-overlay').onclick=null;
+}
+
+function rollTiebreakerDice(tiedPidxs, idx){
+  const pidx = tiedPidxs[idx];
+  const roll = Math.ceil(Math.random()*6)+Math.ceil(Math.random()*6);
+  const diceEl = document.getElementById('order-dice-display');
+  if(diceEl) diceEl.textContent = DICE_FACES[Math.ceil(Math.random()*6)-1]+' '+DICE_FACES[Math.ceil(Math.random()*6)-1];
+  _orderRolls.push({pidx, roll});
+  addLog(`${G.players[pidx].name} sacó ${roll} en el desempate.`);
+
+  if(MODE==='online'){
+    const data={type:'order-tiebreak', pidx, roll, tiedPidxs, idx};
+    if(IS_HOST){ broadcast(data, null); }
+    else{ try{ conn.send(data); }catch(e){} }
+  }
+
+  setTimeout(()=>{
+    if(idx+1 < tiedPidxs.length){
+      showTiebreakerModal(tiedPidxs, idx+1);
+    } else {
+      // Resolver este desempate
+      const maxRoll=Math.max(..._orderRolls.map(r=>r.roll));
+      const stillTied=_orderRolls.filter(r=>r.roll===maxRoll);
+      if(stillTied.length>1){
+        addLog(`⚠️ Otro empate. ¡Repiten ${stillTied.map(r=>G.players[r.pidx].name).join(' y ')}!`);
+        setTimeout(()=>{
+          const tiedAgain=stillTied.map(r=>r.pidx);
+          _orderRolls=_orderRolls.filter(r=>!tiedAgain.includes(r.pidx));
+          _fixedOrder=[..._fixedOrder,..._orderRolls];
+          _orderRolls=[];
+          showTiebreakerModal(tiedAgain,0);
+        },1000);
+      } else {
+        // Merge: todos los del desempate con sus rolls + los previos
+        const allRolls=[..._fixedOrder,..._orderRolls];
+        allRolls.sort((a,b)=>b.roll-a.roll);
+        _orderRolls=allRolls;
+        applyFinalOrder();
+      }
+    }
+  }, 900);
+}
+
+function applyFinalOrder(){
+  closeModal();
+  // En online: solo el host calcula el orden final y lo broadcast
+  if(MODE==='online' && !IS_HOST){
+    // Los guests esperan recibir el orden del host
+    return;
+  }
+
+  // _orderRolls está ordenado de mayor a menor roll
+  const orderedPlayers = _orderRolls.map(r=>({...G.players[r.pidx], roll:r.roll}));
+
+  if(MODE==='online' && IS_HOST){
+    // Broadcast el orden final a los guests
+    const finalOrder = _orderRolls.map(r=>({pidx:r.pidx, roll:r.roll}));
+    broadcast({type:'order-final', finalOrder}, null);
+  }
+
+  showOrderResult(orderedPlayers);
+}
+
+function showOrderResult(orderedPlayers){
+  // orderedPlayers: array ordenado de mayor a menor con {name,token,...,roll}
+  let orderHtml = '<div style="margin:8px 0;">';
+  orderedPlayers.forEach((p,pos)=>{
+    const origPidx=G.players.findIndex(pl=>pl.name===p.name&&pl.token===p.token);
+    orderHtml+=`<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;margin:4px 0;
+      background:${pos===0?'#1a2d1a':'#1a1209'};border-radius:10px;
+      border:1.5px solid ${pos===0?'#4caf50':'var(--dim)'};">
+      <div style="font-family:Oswald,sans-serif;font-size:18px;color:${pos===0?'#f0c040':'#8a7a5a'};width:24px;">${pos+1}°</div>
+      <div style="font-size:24px;">${p.token}</div>
+      <div style="flex:1;font-family:Oswald,sans-serif;font-size:14px;color:${P_COLORS[origPidx]||P_COLORS[pos]};">${p.name}</div>
+      <div style="font-family:Oswald,sans-serif;font-size:20px;color:var(--gold2);">${p.roll}</div>
+      ${pos===0?'<div style="font-size:14px;">🥇</div>':''}
+    </div>`;
+  });
+  orderHtml += '</div>';
+
+  // Reasignar IDs y reordenar G.players
+  const newPlayers = orderedPlayers.map((p,i)=>{
+    const orig=G.players.find(pl=>pl.name===p.name&&pl.token===p.token);
+    return {...orig, id:i};
+  });
+
+  // Actualizar MY_PLAYER_ID en online
+  if(MODE==='online'){
+    const myOrigName=G.players[MY_PLAYER_ID].name;
+    MY_PLAYER_ID=newPlayers.findIndex(p=>p.name===myOrigName);
+  }
+
+  G.players=newPlayers;
+  G.current=0;
+
+  // Reconstruir HUD con nuevo orden
+  buildPlayerBarStrip();
+  updateHUD();
+  renderBoard();
+
+  openModal('🏁 ORDEN DE JUEGO','¡Todo listo para empezar!',
+    orderHtml,
+    [{label:'🎲 ¡COMENZAR!', cls:'btn-primary', fn:'beginGameAfterOrder()'}],
+    0);
+  document.getElementById('modal-overlay').onclick=null;
+}
+
+function beginGameAfterOrder(){
+  closeModal();
+  document.getElementById('modal-overlay').onclick=(e)=>closeModalOutside(e);
+  setPhase('pre-roll');
+  addLog(`🎲 ¡Comienza ${G.players[0].name}!`,0);
+  updateHUD();
+  if(MODE==='online'){
+    // Solo el host publica el estado inicial del juego con el orden resuelto
+    if(IS_HOST) publishState();
+  }
+}
+
+// ═══════════════════════════════════════════
+// WIN
+// ═══════════════════════════════════════════
+function showWin(winner){
+  _gameActive=false;
+  // Mostrar modal de ganador al campeón
+  const tpv=winner.props.reduce((s,i)=>s+(SQUARES[i].price||150),0);
+  const total=winner.money+tpv;
+  openModal('🏆 ¡GANASTE!',winner.name,
+    `<div style="text-align:center;padding:8px 0;">
+      <div style="font-size:52px;margin-bottom:10px;">${winner.token}</div>
+      <div style="font-size:13px;color:#90ee90;margin-bottom:14px;">¡Eres el último en pie!</div>
+      <div class="prop-detail">
+        <div class="prop-row"><span>💰 Dinero</span><span style="color:#4caf50">S/${winner.money}</span></div>
+        <div class="prop-row"><span>🏠 Propiedades</span><span>${winner.props.length}</span></div>
+        <div class="prop-row"><span>📊 Valor props</span><span>S/${tpv}</span></div>
+        <div class="prop-row"><span style="color:var(--gold2)">🏅 Patrimonio</span><span style="color:var(--gold2)">S/${total}</span></div>
+      </div>
+    </div>`,
+    [{label:'🔄 Nueva partida',cls:'btn-primary',fn:'confirmExit()'}],
+    winner.idx!==undefined?winner.idx:G.players.indexOf(winner)
+  );
+}
+
+// ═══════════════════════════════════════════
+// CHAT
+// ═══════════════════════════════════════════
+let _chatOpen=false;
+let _chatMessages=[];
+
+function toggleChat(){
+  _chatOpen=!_chatOpen;
+  const panel=document.getElementById('chat-panel');
+  if(panel) panel.classList.toggle('open',_chatOpen);
+  if(_chatOpen){
+    // Limpiar notificación
+    const notif=document.getElementById('chat-notif');
+    if(notif) notif.classList.remove('show');
+    renderChatMessages();
+    setTimeout(()=>{
+      const input=document.getElementById('chat-input');
+      if(input) input.focus();
+    },100);
+  }
+}
+
+function sendChatMsg(){
+  const input=document.getElementById('chat-input');
+  if(!input) return;
+  const text=input.value.trim();
+  if(!text) return;
+  input.value='';
+  const myId=MODE==='online'?MY_PLAYER_ID:G.current;
+  const myName=G.players[myId]?.name||'Jugador';
+  const msg={from:myId,name:myName,text,ts:Date.now()};
+  _chatMessages.push(msg);
+  renderChatMessages();
+  if(MODE==='online'){
+    const data={type:'chat-msg',msg};
+    if(IS_HOST){ broadcast(data,null); }
+    else{ try{ conn.send(data); }catch(e){} }
+  }
+}
+
+function receiveChat(msg){
+  _chatMessages.push(msg);
+  if(!_chatOpen){
+    const notif=document.getElementById('chat-notif');
+    if(notif) notif.classList.add('show');
+  } else {
+    renderChatMessages();
+  }
+  // Toast rápido
+  showToast('💬 '+msg.name+': '+msg.text.substring(0,30)+(msg.text.length>30?'...':''));
+}
+
+function renderChatMessages(){
+  const box=document.getElementById('chat-messages');
+  if(!box) return;
+  if(!_chatMessages.length){box.innerHTML='<div class="chat-empty">No hay mensajes aún</div>';return;}
+  const myId=MODE==='online'?MY_PLAYER_ID:G.current;
+  box.innerHTML=_chatMessages.map(m=>{
+    const isMe=m.from===myId;
+    return `<div class="chat-msg ${isMe?'mine':'theirs'}">
+      <div class="chat-msg-name">${m.name}</div>
+      <div class="chat-msg-text">${m.text.replace(/</g,'&lt;')}</div>
+    </div>`;
+  }).join('');
+  box.scrollTop=box.scrollHeight;
+}
+
+// ═══════════════════════════════════════════
+// SUBASTA ONLINE — sincronización
+// ═══════════════════════════════════════════
+function publishAuction(){
+  if(MODE==='online'){
+    const data={type:'auction-state', auction: JSON.parse(JSON.stringify(_auction))};
+    if(IS_HOST){ broadcast(data, null); }
+    else{ try{ conn.send(data); }catch(e){} }
+  }
+}
+
+function placeBidOnline(){
+  const bidder=_auction.turnBidder;const p=G.players[bidder];
+  const input=document.getElementById('auction-input');const bid=parseInt(input.value)||0;
+  const minBid=_auction.currentLeader===-1?_auction.startBid:_auction.currentBid+1;
+  if(bid<minBid){input.style.borderColor='#c0392b';input.value=minBid;return;}
+  if(bid>p.money){input.style.borderColor='#c0392b';addLog(p.name+': no tienes S/'+bid);return;}
+  _auction.currentBid=bid;_auction.currentLeader=bidder;_auction.passes=0;_auction.history.push({who:bidder,bid});
+  addLog(`${p.name} ofertó S/${bid}`);
+  _auction.turnBidder=(_auction.turnBidder+1)%G.players.filter(p=>!p.bankrupt).length;
+  if(MODE==='online') publishAuction();
+  showAuctionModal();
+}
+
+function passAuctionOnline(){
+  addLog(G.players[_auction.turnBidder].name+' pasó.');_auction.passes++;
+  const activePlayers=G.players.filter(p=>!p.bankrupt).length;
+  if(_auction.passes>=activePlayers||(_auction.currentLeader!==-1&&_auction.passes>=activePlayers-1)){
+    if(MODE==='online') publishAuction();
+    endAuction();return;
+  }
+  _auction.turnBidder=(_auction.turnBidder+1)%G.players.length;
+  while(G.players[_auction.turnBidder].bankrupt)_auction.turnBidder=(_auction.turnBidder+1)%G.players.length;
+  if(MODE==='online') publishAuction();
+  showAuctionModal();
+}
+
+// ═══════════════════════════════════════════
+// VENDER CASAS para pagar
+// ═══════════════════════════════════════════
+function getSellableHouses(pidx){
+  // Casas normales (1-4)
+  return G.players[pidx].props.filter(i=>G.props[i].houses>0 && G.props[i].houses<5);
+}
+function getSellableHotels(pidx){
+  // Hoteles (5): se pueden bajar a 4 casas, vendiendo 1 "unidad" al valor de una casa
+  return G.players[pidx].props.filter(i=>G.props[i].houses===5);
+}
+function sellHouseForRent(sqIdx){
+  const pidx=G.current,p=G.players[pidx],sq=SQUARES[sqIdx],pd=G.props[sqIdx];
+  const sellVal=Math.floor(sq.house/2);
+  if(pd.houses===5){
+    // Bajar hotel a 4 casas
+    pd.houses=4;
+    addLog(`${p.name} bajó hotel a 4 casas en ${sq.name}. Cobra S/${sellVal}.`);
+  } else {
+    pd.houses--;
+    addLog(`${p.name} vendió 1 casa en ${sq.name}. Cobra S/${sellVal}.`);
+  }
+  p.money+=sellVal;
+  updateHUD();renderBoard();
+  showRentBrokeModal(pidx,SQUARES[G.players[pidx].pos],_pendingRentAmount,_pendingRentOwner,_pendingRentDoubles,_pendingRentOwner===null);
+}
+function sellHouseForBuy(sqIdx){
+  const pidx=G.current,p=G.players[pidx],sq=SQUARES[sqIdx],pd=G.props[sqIdx];
+  const sellVal=Math.floor(sq.house/2);
+  if(pd.houses===5){
+    pd.houses=4;
+    addLog(`${p.name} bajó hotel a 4 casas en ${sq.name}. Cobra S/${sellVal}.`);
+  } else {
+    pd.houses--;
+    addLog(`${p.name} vendió 1 casa en ${sq.name}. Cobra S/${sellVal}.`);
+  }
+  p.money+=sellVal;
+  updateHUD();renderBoard();showMortgageToAfford();
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}
+</script>
+</body>
+</html>
